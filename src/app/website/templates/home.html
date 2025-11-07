@@ -32,12 +32,12 @@
                     <td class="text-end">
                     {% if item.stock_status == "Critical" %}
                       <span class="badge bg-danger">Critical</span>
-                    {% elif item.stock_status == "Warning" %}
+                    {% elif item.stock_status == "Low" %}
                       <span class="badge bg-warning">Low</span>
                     {% elif item.stock_status == "Good" %}
                       <span class="badge bg-success">Good</span>
                     {% else %}
-                      <span class="badge bg-info">Sufficient</span>
+                      <span class="badge bg-info">Normal</span>
                     {% endif %}
                     </td>
                   </tr>

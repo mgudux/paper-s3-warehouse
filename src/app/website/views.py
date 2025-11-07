@@ -55,10 +55,6 @@ def firmware_generator():
     pass
 
 
-def inventory_update():
-    pass
-
-
 def health_check():
     pass
 

@@ -10,10 +10,10 @@ class Device(models.Model):
     row = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(6)]
     )
-    top_level = models.PositiveIntegerField(  # top most box
+    bottom_level = models.PositiveIntegerField(  # lowest possible box (bottom most box)
         validators=[MinValueValidator(1), MaxValueValidator(4)]
     )
-    left_box = models.PositiveIntegerField(  # left most box
+    left_box = models.PositiveIntegerField(  # left-most box
         validators=[MinValueValidator(1), MaxValueValidator(6)]
     )
     height = models.PositiveIntegerField(
@@ -24,7 +24,7 @@ class Device(models.Model):
     )
 
     def footprint_boxes(self):
-        levels = range(self.top_level, self.top_level + self.height)
+        levels = range(self.bottom_level, self.bottom_level + self.height)
         boxes = range(self.left_box, self.left_box + self.width)
         return (
             (self.row, level, box)
@@ -36,7 +36,12 @@ class Device(models.Model):
         return self.height, self.width
 
     def __str__(self):
-        return f"Device R{self.row}-E{self.top_level}-K{self.left_box} ({self.height}x{self.width})"
+        return (
+            f"R{self.row}-E{self.bottom_level}-K{self.left_box} "
+            f"[{self.height}x{self.width}: "
+            f"E{self.bottom_level}-{self.bottom_level + self.height - 1}, "
+            f"K{self.left_box}-{self.left_box + self.width - 1}]"
+        )
 
     def clean(self):
         super().clean()
@@ -83,11 +88,11 @@ class Item(models.Model):
         if self.stock >= round(self.min_stock*1.25):
             return "Good"
         elif self.stock <= self.min_stock:
-            return "Warning"
+            return "Low"
         elif self.stock == 0 or self.stock <= round(self.min_stock*0.25):
             return "Critical"
         else:
-            return "Sufficient"
+            return "Normal"
 
     def clean(self):
         super().clean()

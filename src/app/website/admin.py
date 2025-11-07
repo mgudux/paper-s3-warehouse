@@ -7,7 +7,7 @@ logger = logging.getLogger("website.inventory")
 
 @admin.register(Device)
 class DeviceAdmin(admin.ModelAdmin):
-    list_display = ("mac_address", "row", "top_level", "left_box",
+    list_display = ("mac_address", "row", "bottom_level", "left_box",
                     "width", "height", "get_layout")
     search_fields = ("mac_address",)
     list_filter = ("row", "width", "height")
@@ -33,7 +33,7 @@ class ItemAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        if obj.stock_status() in ["Warning", "Critical"]:
+        if obj.stock_status() in ["Low", "Critical"]:
             location = obj.location_label()
             logger.warning(f"Stock {obj.stock_status()}: device_name=%s item_name=%s stock=%s min_stock=%s location=%s",
                            obj.device,
@@ -44,6 +44,6 @@ class ItemAdmin(admin.ModelAdmin):
                            )
             self.message_user(
                 request,
-                f"{obj.stock_status()}: Item '{obj.name}' at {location} has stock {obj.stock} below the minimum of {obj.min_stock}.",
+                f"Stock {obj.stock_status()}: Item '{obj.name}' at {location} has stock {obj.stock} below the minimum of {obj.min_stock}.",
                 level=messages.WARNING,
             )
