@@ -49,3 +49,15 @@ def update_item(request, pk):
     else:
         form = UpdateItemForm(instance=item)
     return render(request, "update_item.html", {"form": form})
+
+
+def firmware_generator():
+    pass
+
+
+def inventory_update():
+    pass
+
+
+def health_check():
+    pass

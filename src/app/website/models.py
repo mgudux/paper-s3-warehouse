@@ -2,11 +2,11 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
-ALLOWED_SIZES = {(1, 1), (2, 2), (2, 3), (2, 4)}  # height, width
+ALLOWED_SIZES = {(2, 2), (2, 3)}  # height, width of device layout
 
 
 class Device(models.Model):
-    mac_address = models.CharField(max_length=50, unique=True)
+    device_mac = models.CharField(max_length=50, unique=True)
     row = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(6)]
     )
@@ -17,10 +17,10 @@ class Device(models.Model):
         validators=[MinValueValidator(1), MaxValueValidator(6)]
     )
     width = models.PositiveIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(4)]
+        validators=[MinValueValidator(2), MaxValueValidator(3)]
     )
     height = models.PositiveIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(4)]
+        validators=[MinValueValidator(2), MaxValueValidator(2)]
     )
 
     def footprint_boxes(self):
@@ -55,7 +55,7 @@ class Item(models.Model):
     )
 
     def __str__(self):
-        device_mac = getattr(self.device, "mac_address", "?")
+        device_mac = getattr(self.device, "device_mac", "?")
         return (
             f"{self.name} {self.stock}/{self.max_stock} "
             f"R{self.row} L{self.level} B{self.box} {device_mac}"
@@ -71,7 +71,7 @@ class Item(models.Model):
         super().clean()
         if self.device.layout() not in ALLOWED_SIZES:
             raise ValidationError(
-                "Unsupported touch-zone layout from device script."
-            )
+                "Unsupported touch-zone layout, choose 2 as height and 2 or 3 as width")
         if (self.row, self.level, self.box) not in set(self.device.footprint_boxes()):
-            raise ValidationError("Box lies outside the device footprint.")
+            raise ValidationError(
+                "Box lies outside the possible device area, check item locations")
