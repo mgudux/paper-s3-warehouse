@@ -18,7 +18,7 @@
                   <th scope="col">Item</th>
                   <th scope="col">Location</th>
                   <th scope="col" class="text-end">Stock</th>
-                  <th scope="col" class="text-end">Max</th>
+                  <th scope="col" class="text-end">Min</th>
                   <th scope="col" class="text-end">Status</th>
                 </tr>
               </thead>
@@ -28,13 +28,17 @@
                     <td class="fw-semibold">{{ item.name }}</td>
                     <td class="text-muted">{{ item.location_label }}</td>
                     <td class="text-end">{{ item.stock }}</td>
-                    <td class="text-end">{{ item.max_stock }}</td>
+                    <td class="text-end">{{ item.min_stock }}</td>
                     <td class="text-end">
-                      {% if item.needs_stock_warning %}
-                        <span class="badge bg-danger">Full</span>
-                      {% else %}
-                        <span class="badge bg-success">OK</span>
-                      {% endif %}
+                    {% if item.stock_status == "Critical" %}
+                      <span class="badge bg-danger">Critical</span>
+                    {% elif item.stock_status == "Warning" %}
+                      <span class="badge bg-warning">Low</span>
+                    {% elif item.stock_status == "Good" %}
+                      <span class="badge bg-success">Good</span>
+                    {% else %}
+                      <span class="badge bg-info">Sufficient</span>
+                    {% endif %}
                     </td>
                   </tr>
                 {% endfor %}

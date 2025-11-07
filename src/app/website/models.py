@@ -6,21 +6,21 @@ ALLOWED_SIZES = {(2, 2), (2, 3)}  # height, width of device layout
 
 
 class Device(models.Model):
-    device_mac = models.CharField(max_length=50, unique=True)
+    mac_address = models.CharField(max_length=50, unique=True)
     row = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(6)]
     )
-    top_level = models.PositiveIntegerField(
+    top_level = models.PositiveIntegerField(  # top most box
         validators=[MinValueValidator(1), MaxValueValidator(4)]
     )
-    left_box = models.PositiveIntegerField(
+    left_box = models.PositiveIntegerField(  # left most box
         validators=[MinValueValidator(1), MaxValueValidator(6)]
-    )
-    width = models.PositiveIntegerField(
-        validators=[MinValueValidator(2), MaxValueValidator(3)]
     )
     height = models.PositiveIntegerField(
         validators=[MinValueValidator(2), MaxValueValidator(2)]
+    )
+    width = models.PositiveIntegerField(
+        validators=[MinValueValidator(2), MaxValueValidator(3)]
     )
 
     def footprint_boxes(self):
@@ -33,7 +33,22 @@ class Device(models.Model):
         )
 
     def layout(self):
-        return self.width, self.height
+        return self.height, self.width
+
+    def __str__(self):
+        return f"Device R{self.row}-E{self.top_level}-K{self.left_box} ({self.height}x{self.width})"
+
+    def clean(self):
+        super().clean()
+        my_footprint = set(self.footprint_boxes())
+        for device in Device.objects.exclude(pk=self.pk):
+            other_footprint = set(device.footprint_boxes())
+            check_overlap = my_footprint & other_footprint
+            if check_overlap:  # & creates a new list when an element exists in both
+                locations = ", ".join(
+                    [f"R{r}-E{e}-K{k}" for r, e, k in check_overlap])
+                raise ValidationError(
+                    f"Overlapping devices found at: {locations}")
 
 
 class Item(models.Model):
@@ -41,7 +56,7 @@ class Item(models.Model):
     device = models.ForeignKey(Device, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     stock = models.PositiveIntegerField()
-    max_stock = models.PositiveIntegerField(
+    min_stock = models.PositiveIntegerField(
         validators=[MinValueValidator(1)]
     )
     row = models.PositiveIntegerField(
@@ -55,17 +70,24 @@ class Item(models.Model):
     )
 
     def __str__(self):
-        device_mac = getattr(self.device, "device_mac", "?")
+        mac_address = getattr(self.device, "mac_address", "?")
         return (
-            f"{self.name} {self.stock}/{self.max_stock} "
-            f"R{self.row} L{self.level} B{self.box} {device_mac}"
+            f"{self.name} {self.stock}/{self.min_stock} "
+            f"R{self.row} L{self.level} B{self.box} {mac_address}"
         )
 
     def location_label(self):
         return f"R{self.row}-E{self.level}-K{self.box}"
 
-    def is_full(self):
-        return self.stock is not None and self.stock >= (self.max_stock or 0)
+    def stock_status(self):
+        if self.stock >= round(self.min_stock*1.25):
+            return "Good"
+        elif self.stock <= self.min_stock:
+            return "Warning"
+        elif self.stock == 0 or self.stock <= round(self.min_stock*0.25):
+            return "Critical"
+        else:
+            return "Sufficient"
 
     def clean(self):
         super().clean()
