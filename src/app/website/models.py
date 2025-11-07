@@ -53,7 +53,7 @@ class Device(models.Model):
                 locations = ", ".join(
                     [f"R{r}-E{e}-K{k}" for r, e, k in check_overlap])
                 raise ValidationError(
-                    f"Overlapping devices found at: {locations}")
+                    f"The devices {self.__str__()} and {device.__str__()} are overlapping at location: {locations}")
 
 
 class Item(models.Model):
@@ -78,21 +78,21 @@ class Item(models.Model):
         mac_address = getattr(self.device, "mac_address", "?")
         return (
             f"{self.name} {self.stock}/{self.min_stock} "
-            f"R{self.row} L{self.level} B{self.box} {mac_address}"
+            f"R{self.row} E{self.level} K{self.box} {mac_address}"
         )
 
     def location_label(self):
         return f"R{self.row}-E{self.level}-K{self.box}"
 
     def stock_status(self):
-        if self.stock >= round(self.min_stock*1.25):
-            return "Good"
+        if self.stock == 0 or self.stock <= round(self.min_stock * 0.25):
+            return "Critical"
         elif self.stock <= self.min_stock:
             return "Low"
-        elif self.stock == 0 or self.stock <= round(self.min_stock*0.25):
-            return "Critical"
-        else:
+        elif self.stock < round(self.min_stock * 1.25):
             return "Normal"
+        else:  # stock >= round(self.min_stock * 1.25)
+            return "Good"
 
     def clean(self):
         super().clean()
