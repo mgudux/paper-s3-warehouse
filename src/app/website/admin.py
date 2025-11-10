@@ -7,21 +7,21 @@ logger = logging.getLogger("website.inventory")
 
 @admin.register(Device)
 class DeviceAdmin(admin.ModelAdmin):
-    list_display = ("mac_address", "row", "bottom_level", "left_box",
-                    "width", "height", "get_layout")
+    list_display = ("get_name", "mac_address", "row", "bottom_level", "left_box",
+                    "height", "width", "created_at")
     search_fields = ("mac_address",)
-    list_filter = ("row", "width", "height")
+    list_filter = ("row", "height", "width")
 
-    def get_layout(self, obj):
-        """Display the device layout"""
-        return f"{obj.height}x{obj.width}"
-    get_layout.short_description = "Layout"
+    def get_name(self, obj):
+        """Display the device name from __str__"""
+        return obj.__str__()
+    get_name.short_description = "Name"
 
 
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ("name", "get_device_mac", "stock", "min_stock",
-                    "row", "level", "box", "created_at")
+    list_display = ("name", "get_device_name", "get_device_mac", "stock", "min_stock",
+                    "row", "level", "box", "last_modified")
     search_fields = ("name", "device__mac_address", "row", "level", "box")
     list_filter = ("row", "level", "box")
 
@@ -30,6 +30,11 @@ class ItemAdmin(admin.ModelAdmin):
         return obj.device.mac_address if obj.device else "-"
     get_device_mac.short_description = "Device MAC"
     get_device_mac.admin_order_field = "device__mac_address"
+
+    def get_device_name(self, obj):
+        """Display the name of the associated device"""
+        return obj.device.__str__()
+    get_device_name.short_description = "Device Name"
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .models import Device, Item
-from . import forms
+from .forms import UpdateItemFormFull, UpdateItemFormBasic
 
 
 def home(request):
@@ -51,15 +51,19 @@ def show_item_details(request, pk):
 
 def update_item(request, pk):
     item = get_object_or_404(Item, pk=pk)
+    if request.user.is_authenticated:
+        FormClass = UpdateItemFormFull
+    else:
+        FormClass = UpdateItemFormBasic
     if request.method == "POST":
-        form = UpdateItemForm(request.POST, instance=item)
+        form = FormClass(request.POST, instance=item)
         if form.is_valid():
             form.save()
             messages.success(request, "Item has been updated!")
             return redirect('home')
         messages.warning(request, "Invalid form, please try again.")
     else:
-        form = UpdateItemForm(instance=item)
+        form = FormClass(instance=item)
     return render(request, "update_item.html", {"form": form})
 
 

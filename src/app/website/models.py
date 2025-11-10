@@ -6,6 +6,7 @@ ALLOWED_SIZES = {(2, 2), (2, 3)}  # height, width of device layout
 
 
 class Device(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
     mac_address = models.CharField(max_length=50, unique=True)
     row = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(6)]
@@ -32,9 +33,6 @@ class Device(models.Model):
             for box in boxes
         )
 
-    def layout(self):
-        return self.height, self.width
-
     def __str__(self):
         return (
             f"R{self.row}-E{self.bottom_level}-K{self.left_box} "
@@ -45,6 +43,11 @@ class Device(models.Model):
 
     def clean(self):
         super().clean()
+
+        if (self.height, self.width) not in ALLOWED_SIZES:
+            raise ValidationError(
+                "Unsupported touch-zone layout, choose 2 as height and 2 or 3 as width")
+
         my_footprint = set(self.footprint_boxes())
         for device in Device.objects.exclude(pk=self.pk):
             other_footprint = set(device.footprint_boxes())
@@ -57,7 +60,7 @@ class Device(models.Model):
 
 
 class Item(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
     device = models.ForeignKey(Device, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     stock = models.PositiveIntegerField()
@@ -85,20 +88,15 @@ class Item(models.Model):
         return f"R{self.row}-E{self.level}-K{self.box}"
 
     def stock_status(self):
-        if self.stock == 0 or self.stock <= round(self.min_stock * 0.25):
+        if self.stock <= 1 or self.stock <= round(self.min_stock * 0.25):
             return "Critical"
-        elif self.stock <= self.min_stock:
+        elif self.stock < self.min_stock:
             return "Low"
-        elif self.stock < round(self.min_stock * 1.25):
-            return "Normal"
-        else:  # stock >= round(self.min_stock * 1.25)
+        else:
             return "Good"
 
     def clean(self):
         super().clean()
-        if self.device.layout() not in ALLOWED_SIZES:
-            raise ValidationError(
-                "Unsupported touch-zone layout, choose 2 as height and 2 or 3 as width")
         if (self.row, self.level, self.box) not in set(self.device.footprint_boxes()):
             raise ValidationError(
                 f"Box at {self.location_label} with the name {self.name} lies outside the possible device area, please reinstall the firmware on the device {self.device.__str__()}")
