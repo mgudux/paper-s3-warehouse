@@ -101,4 +101,4 @@ class Item(models.Model):
                 "Unsupported touch-zone layout, choose 2 as height and 2 or 3 as width")
         if (self.row, self.level, self.box) not in set(self.device.footprint_boxes()):
             raise ValidationError(
-                "Box lies outside the possible device area, check item locations")
+                f"Box at {self.location_label} with the name {self.name} lies outside the possible device area, please reinstall the firmware on the device {self.device.__str__()}")

@@ -1,11 +1,23 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from .models import Item
+from .models import Device, Item
 from . import forms
 
 
 def home(request):
-    items = Item.objects.all()
+    # Groups Items by non-empty Devices
+    devices_with_items = []
+
+    for device in Device.objects.all():
+        items = Item.objects.filter(device=device)
+        devices_with_items.append({
+            'device': device,
+            'items': items,
+            'item_count': items.count(),
+            'critical_count': sum(1 for item in items if item.stock_status() == "Critical"),
+            'low_count': sum(1 for item in items if item.stock_status() == "Low")
+        })
 
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -19,7 +31,7 @@ def home(request):
 
         messages.error(request, "There was an error logging in, try again.")
 
-    return render(request, 'home.html', {'items': items})
+    return render(request, 'home.html', {'devices_with_items': devices_with_items})
 
 
 def logout_user(request):
@@ -57,5 +69,3 @@ def firmware_generator():
 
 def health_check():
     pass
-
-#

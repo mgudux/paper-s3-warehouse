@@ -3,52 +3,81 @@
 {% block content %}
 {% if user.is_authenticated %}
   <div class="container py-4">
-    <h1 class="mb-4">Inventory</h1>
-    {% if items %}
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="h5 mb-0">Current Stock</h2>
-            <span class="badge bg-secondary">{{ items|length }} item{{ items|length|pluralize }}</span>
+    <h1 class="mb-4">Inventory by Device</h1>
+    
+    {% if devices_with_items %}
+      {% for device_data in devices_with_items %}
+        <div class="card shadow-sm mb-4">
+          <!-- Device Header -->
+          <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h5 class="mb-1">
+                  <i class="bi bi-cpu"></i> Device: {{ device_data.device }}
+                </h5>
+                <small>MAC: {{ device_data.device.mac_address }}</small>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-light text-dark">{{ device_data.item_count }} item{{ device_data.item_count|pluralize }}</span>
+                {% if device_data.critical_count > 0 %}
+                  <span class="badge bg-danger">{{ device_data.critical_count }} Critical</span>
+                {% endif %}
+                {% if device_data.low_count > 0 %}
+                  <span class="badge bg-warning text-dark">{{ device_data.low_count }} Low</span>
+                {% endif %}
+              </div>
+            </div>
           </div>
-          <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th scope="col">Item</th>
-                  <th scope="col">Location</th>
-                  <th scope="col" class="text-end">Stock</th>
-                  <th scope="col" class="text-end">Min</th>
-                  <th scope="col" class="text-end">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for item in items %}
-                  <tr>
-                    <td class="fw-semibold">{{ item.name }}</td>
-                    <td class="text-muted">{{ item.location_label }}</td>
-                    <td class="text-end">{{ item.stock }}</td>
-                    <td class="text-end">{{ item.min_stock }}</td>
-                    <td class="text-end">
-                    {% if item.stock_status == "Critical" %}
-                      <span class="badge bg-danger">Critical</span>
-                    {% elif item.stock_status == "Low" %}
-                      <span class="badge bg-warning">Low</span>
-                    {% elif item.stock_status == "Good" %}
-                      <span class="badge bg-success">Good</span>
-                    {% else %}
-                      <span class="badge bg-info">Normal</span>1
-                    {% endif %}
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+          
+          <!--Device Items-->
+          <div class="card-body">
+            {% if device_data.items %}
+              <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">Item</th>
+                      <th scope="col">Location</th>
+                      <th scope="col" class="text-end">Stock</th>
+                      <th scope="col" class="text-end">Min</th>
+                      <th scope="col" class="text-center">Status</th>
+                      <th scope="col" class="text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in device_data.items %}
+                      <tr>
+                        <td class="fw-semibold">{{ item.name }}</td>
+                        <td class="text-muted">{{ item.location_label }}</td>
+                        <td class="text-end">{{ item.stock }}</td>
+                        <td class="text-end">{{ item.min_stock }}</td>
+                        <td class="text-center">
+                          {% if item.stock_status == "Critical" %}
+                            <span class="badge bg-danger">Critical</span>
+                          {% elif item.stock_status == "Low" %}
+                            <span class="badge bg-warning text-dark">Low</span>
+                          {% elif item.stock_status == "Good" %}
+                            <span class="badge bg-success">Good</span>
+                          {% else %}
+                            <span class="badge bg-info">Normal</span>
+                          {% endif %}
+                        </td>
+                        <td class="text-center">
+                          <a href="{% url 'update_item' item.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <p class="text-muted mb-0">No items assigned to this device. Please reinstall the firmware on this device and connect it with the server.</p>
+            {% endif %}
           </div>
         </div>
-      </div>
+      {% endfor %}
     {% else %}
-      <div class="alert alert-info">No items yet.</div>
+      <div class="alert alert-info">No devices configured yet. Please install the firmware on any device and connect it with the server.</div>
     {% endif %}
   </div>
 {% else %}
