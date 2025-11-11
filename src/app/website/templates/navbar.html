@@ -16,14 +16,30 @@
                     <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
                 </li>
                 {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'analytics' %}">Analytics</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'stock_history' %}">Stock History</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'backup_restore' %}">Backup & Restore</a>
+                </li>
             </ul>
-            <form class="d-flex" role="search">
-                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" />
+            <form class="d-flex" method="GET" action="{% url 'home' %}" role="search">
+                <input class="form-control me-2" 
+                       type="search" 
+                       name="search" 
+                       placeholder="Search items or location" 
+                       aria-label="Search"
+                       value="{{ search_query }}" />
                 <button class="btn btn-outline-success" type="submit">Search</button>
             </form>
         </div>
     </div>
 </nav>
+
+
 
 <!-- Login -->
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
@@ -34,7 +50,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form method="post" action="{% url 'home' %}">
+                <form method="post" action="">
                     {% csrf_token %}
                     <div class="mb-3">
                         <label for="username" class="form-label">Username</label>

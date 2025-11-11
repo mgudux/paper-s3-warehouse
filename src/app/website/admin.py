@@ -12,10 +12,9 @@ class DeviceAdmin(admin.ModelAdmin):
     search_fields = ("mac_address",)
     list_filter = ("row", "height", "width")
 
+    @admin.display(description="Name")
     def get_name(self, obj):
-        """Display the device name from __str__"""
         return obj.__str__()
-    get_name.short_description = "Name"
 
 
 @admin.register(Item)
@@ -25,17 +24,15 @@ class ItemAdmin(admin.ModelAdmin):
     search_fields = ("name", "device__mac_address", "row", "level", "box")
     list_filter = ("row", "level", "box")
 
+    @admin.display(description="Device MAC", ordering="device__mac_address")
     def get_device_mac(self, obj):
-        """Display the MAC address of the associated device"""
-        return obj.device.mac_address if obj.device else "-"
-    get_device_mac.short_description = "Device MAC"
-    get_device_mac.admin_order_field = "device__mac_address"
+        return obj.device.mac_address if obj.device else None
 
+    @admin.display(description="Device Name")
     def get_device_name(self, obj):
-        """Display the name of the associated device"""
-        return obj.device.__str__()
-    get_device_name.short_description = "Device Name"
+        return obj.device.__str__() if obj.device else None
 
+    @admin.display(description="Device Name")
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         if obj.stock_status() in ["Low", "Critical"]:
