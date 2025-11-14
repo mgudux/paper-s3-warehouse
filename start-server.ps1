@@ -16,6 +16,7 @@ try {
     $composeArgs += "db"
     docker compose @composeArgs
     Write-Host "Applying migrations..."
+    python ./src/app/manage.py populate_history --auto
     python ./src/app/manage.py makemigrations
     python ./src/app/manage.py migrate
     Write-Host "Starting Django development server (Ctrl+C to stop)..."

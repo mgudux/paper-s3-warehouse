@@ -1,21 +1,23 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
+from simple_history.models import HistoricalRecords, HistoricForeignKey
 from django.db import models
 
 ALLOWED_SIZES = {(2, 2), (2, 3)}  # height, width of device layout
 
 
 class Device(models.Model):
+    max_rows = 6
     created_at = models.DateTimeField(auto_now_add=True)
     mac_address = models.CharField(max_length=50, unique=True)
     row = models.PositiveIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(6)]
+        validators=[MinValueValidator(1), MaxValueValidator(max_rows)]
     )
     bottom_level = models.PositiveIntegerField(  # lowest possible box (bottom most box)
-        validators=[MinValueValidator(1), MaxValueValidator(4)]
+        validators=[MinValueValidator(1), MaxValueValidator(3)]
     )
     left_box = models.PositiveIntegerField(  # left-most box
-        validators=[MinValueValidator(1), MaxValueValidator(6)]
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
     height = models.PositiveIntegerField(
         validators=[MinValueValidator(2), MaxValueValidator(2)]
@@ -23,6 +25,7 @@ class Device(models.Model):
     width = models.PositiveIntegerField(
         validators=[MinValueValidator(2), MaxValueValidator(3)]
     )
+    history = HistoricalRecords(table_name="device_history")
 
     def footprint_boxes(self):
         levels = range(self.bottom_level, self.bottom_level + self.height)
@@ -64,7 +67,7 @@ class Device(models.Model):
 
 class Item(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
-    device = models.ForeignKey(Device, on_delete=models.CASCADE)
+    device = HistoricForeignKey(Device, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     stock = models.PositiveIntegerField()
     min_stock = models.PositiveIntegerField(
@@ -78,6 +81,10 @@ class Item(models.Model):
     )
     box = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(6)]
+    )
+    history = HistoricalRecords(
+        table_name="item_history",
+        excluded_fields=['last_modified'],
     )
 
     def __str__(self):

@@ -1,66 +1,96 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark border-bottom border-secondary shadow-lg" style="background: linear-gradient(135deg, #1a1d20 0%, #2c3034 100%);">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'home' %}">Lager Digital</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+            <div class="brand-icon">
+                <i class="bi bi-building"></i>
+            </div>
+            <span class="fw-bold ms-2">Lager Digital</span>
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                {% if user.is_authenticated %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                    <a class="nav-link d-flex align-items-center px-3" href="{% url 'analytics' %}">
+                        <i class="bi bi-graph-up me-2"></i>
+                        <span>Analytics</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center px-3" href="{% url 'stock_history' %}">
+                        <i class="bi bi-clock-history me-2"></i>
+                        <span>Stock History</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center px-3" href="{% url 'backup_restore' %}">
+                        <i class="bi bi-arrow-repeat me-2"></i>
+                        <span>Backup</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center me-3">
+                <div class="search-container">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" id="realtimeSearch" class="form-control search-input" placeholder="Search items...">
+                </div>
+            </div>
+            <ul class="navbar-nav">
+                {% if user.is_authenticated %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center user-menu" href="#" id="userDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-2"></i>
+                        <span>{{ user.username }}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end border-secondary" aria-labelledby="userDropdown">
+                        <li>
+                            <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                                <i class="bi bi-box-arrow-right me-2"></i> Logout
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 {% else %}
                 <li class="nav-item">
-                    <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#loginModal">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Login
+                    </button>
                 </li>
                 {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'analytics' %}">Analytics</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'stock_history' %}">Stock History</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'backup_restore' %}">Backup & Restore</a>
-                </li>
             </ul>
-            <form class="d-flex" method="GET" action="{% url 'home' %}" role="search">
-                <input class="form-control me-2" 
-                       type="search" 
-                       name="search" 
-                       placeholder="Search items or location" 
-                       aria-label="Search"
-                       value="{{ search_query }}" />
-                <button class="btn btn-outline-success" type="submit">Search</button>
-            </form>
         </div>
     </div>
 </nav>
 
-
-
 <!-- Login -->
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="loginModalLabel">Login</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content bg-dark border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white" id="loginModalLabel">
+                    <i class="bi bi-shield-lock me-2"></i> Login to Lager Digital
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body p-4">
                 <form method="post" action="">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
+                        <label for="username" class="form-label text-white">Username</label>
+                        <input type="text" class="form-control bg-dark border-secondary text-white" id="username"
+                               name="username" placeholder="Enter your username" required>
                     </div>
                     <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
+                        <label for="password" class="form-label text-white">Password</label>
+                        <input type="password" class="form-control bg-dark border-secondary text-white" id="password"
+                               name="password" placeholder="Enter your password" required>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                    <button type="submit" class="btn btn-primary w-100">
+                        Login
+                    </button>
                 </form>
             </div>
         </div>

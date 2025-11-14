@@ -36,11 +36,12 @@ def item_search(query):
             elif prefix.upper() in ['K', 'B']:
                 box = number
     else:
-        # No prefixes found, use positional parsing
+        # No prefixes found, use location parsing
         location_match = re.search(
-            r'(?P<row>\d{1,3})(?:\D+(?P<level>\d{1,3})(?:\D+(?P<box>\d{1,3}))?)?',
+            r'(?P<row>\d)(?:\D*(?P<level>\d)(?:\D*(?P<box>\d))?)?',
             query
         )
+
         if location_match and location_match.group('row'):
             location_parsed = True
             row = location_match.group('row')
@@ -66,7 +67,7 @@ def item_search(query):
 
     # Item search by string (trigram similarity) as Fallback
     items = Item.objects.select_related('device').annotate(
-        similarity=TrigramSimilarity('name', query)).filter(similarity__gt=0.15).order_by('-similarity')[:10]
+        similarity=TrigramSimilarity('name', query)).filter(similarity__gt=0.17).order_by('-similarity')[:10]
     return items
 
 
@@ -90,17 +91,25 @@ def home(request):
         'good_count': sum(1 for item in Item.objects.all() if item.stock_status() == "Good")
     }
 
-    devices_with_items = []
-    for device in Device.objects.all():
-        items = Item.objects.filter(device=device)
-        devices_with_items.append({
-            'device': device,
-            'items': items,
-            'item_count': items.count(),
-            'critical_count': sum(1 for item in items if item.stock_status() == "Critical"),
-            'low_count': sum(1 for item in items if item.stock_status() == "Low"),
-            'good_count': sum(1 for item in items if item.stock_status() == "Good")
-        })
+    rows_data = []
+    for row_number in range(1, Device.max_rows):
+        devices_with_items = []
+
+        for device in Device.objects.filter(row=row_number):
+            items = Item.objects.filter(device=device)
+            devices_with_items.append({
+                'device': device,
+                'items': items,
+                'item_count': items.count(),
+                'critical_count': sum(1 for item in items if item.stock_status() == "Critical"),
+                'low_count': sum(1 for item in items if item.stock_status() == "Low"),
+                'good_count': sum(1 for item in items if item.stock_status() == "Good")
+            })
+        if devices_with_items:
+            rows_data.append({
+                'row_number': row_number,
+                'devices': devices_with_items
+            })
 
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -113,7 +122,10 @@ def home(request):
             return redirect('home')
 
         messages.error(request, "There was an error logging in, try again.")
-    return render(request, 'home.html', {'devices_with_items': devices_with_items})
+    return render(request, 'home.html', {
+        'rows_data': rows_data,
+        'total_stats': total_stats,
+    })
 
 
 def logout_user(request):
