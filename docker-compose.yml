@@ -31,6 +31,7 @@ services:
       - 8000:8000
     volumes:
       - ./src:/app
+      - ./backup:/backup
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}

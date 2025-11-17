@@ -456,53 +456,51 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      let activeStatusFilter = null;
-      let searchQuery = '';
-
-      // Search
-      const searchInput = document.getElementById('realtimeSearch');
-      if (searchInput) {
-        searchInput.addEventListener('input', function() {
-          searchQuery = this.value.toLowerCase().trim();
-          applyFilters();
-        });
-      }
-
+      window.activeStatusFilter = null;
       // Status Filter
       const statusFilterBadges = document.querySelectorAll('.filter-badge[data-filter-type="status"]');
       statusFilterBadges.forEach(badge => {
         badge.addEventListener('click', function() {
           const filterType = this.dataset.filter;
-          if (activeStatusFilter === filterType) {
-            activeStatusFilter = null;
+          if (window.activeStatusFilter === filterType) {
+            window.activeStatusFilter = null;
             this.classList.remove('active');
           } else {
             document.querySelectorAll('.filter-badge[data-filter-type="status"]').forEach(b => b.classList.remove('active'));
-            activeStatusFilter = filterType;
+            window.activeStatusFilter = filterType;
             this.classList.add('active');
           }
-          applyFilters();
+          window.applyFilters();
         });
       });
 
-      function applyFilters() {
-        const allItems = document.querySelectorAll('.item-box');
-        allItems.forEach(item => {
-          const matchesStatus = !activeStatusFilter || item.dataset.status === activeStatusFilter;
-          const itemText = (item.querySelector('.item-name')?.textContent || '') + ' ' +
-                          (item.querySelector('.item-location')?.textContent || '');
-          const matchesSearch = !searchQuery || itemText.toLowerCase().includes(searchQuery);
+        window.applyFilters = function() {
+          // Get current search
+          const searchInput = document.getElementById('realtimeSearch');
+          const searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-          item.classList.toggle('hidden', !(matchesStatus && matchesSearch));
-        });
+          const allItems = document.querySelectorAll('.item-box');
+          allItems.forEach(item => {
+              // Check status filter
+              const matchesStatus = !window.activeStatusFilter || item.dataset.status === window.activeStatusFilter;
+              
+              // Check search filter
+              const itemText = (item.querySelector('.item-name')?.textContent || '') + ' ' +
+                              (item.querySelector('.item-location')?.textContent || '');
+              const matchesSearch = !searchQuery || itemText.toLowerCase().includes(searchQuery);
+              
+              // Show only if both match
+              item.classList.toggle('hidden', !(matchesStatus && matchesSearch));
+            });
+        }
+      });
+
+      // Reihen Dropdown
+      function toggleRow(rowNumber) {
+        const rowContainer = document.querySelector(`.row-container[data-row="${rowNumber}"]`);
+        rowContainer.classList.toggle('collapsed');
       }
-    });
 
-    // Reihen Dropdown
-    function toggleRow(rowNumber) {
-      const rowContainer = document.querySelector(`.row-container[data-row="${rowNumber}"]`);
-      rowContainer.classList.toggle('collapsed');
-    }
   </script>
 
 {% endblock %}

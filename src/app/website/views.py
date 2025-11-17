@@ -8,15 +8,20 @@ from .forms import UpdateItemFormFull, UpdateItemFormBasic
 import re
 
 
-def item_search(query):
+def item_search(query, search_history=False):
     """
     Parse digits into row, level, box.
     Args:
         R1-E3-K3, R1-B3-K3, 1-3-3, K4, B4 K4, R1, B2, etc.
     Returns filtered Items
     """
+    if search_history:
+        ItemModel = Item.history
+    else:
+        ItemModel = Item.objects
+
     if not query:
-        return Item.objects.none()
+        return ItemModel.none()
 
     query = query.strip()
     row = level = box = None
@@ -60,14 +65,21 @@ def item_search(query):
 
         # Query if we have valid filters
         if filters:
-            results = Item.objects.filter(filters).select_related(
-                'device').order_by('row', 'level', 'box')
+            results = ItemModel.filter(filters).order_by('row', 'level', 'box')
+            # Only use select_related for non-historical queries
+            if not search_history:
+                results = results.select_related('device')
             if results.exists():
                 return results
 
     # Item search by string (trigram similarity) as Fallback
-    items = Item.objects.select_related('device').annotate(
-        similarity=TrigramSimilarity('name', query)).filter(similarity__gt=0.17).order_by('-similarity')[:10]
+    if search_history:
+        # Historical records don't support annotate, use simple name search
+        items = ItemModel.filter(name__icontains=query).order_by('-history_date')[:10]
+    else:
+        items = ItemModel.annotate(
+            similarity=TrigramSimilarity('name', query)).filter(similarity__gt=0.17).order_by('-similarity')[:10]
+        items = items.select_related('device')
     return items
 
 
@@ -85,7 +97,7 @@ def home(request):
         return render(request, 'home.html', context)
 
     total_stats = {
-        'item_count': Item.objects.all().count(),
+        'item_count': Item.objects.all().count(),  # ✅ Use Item.objects
         'critical_count': sum(1 for item in Item.objects.all() if item.stock_status() == "Critical"),
         'low_count': sum(1 for item in Item.objects.all() if item.stock_status() == "Low"),
         'good_count': sum(1 for item in Item.objects.all() if item.stock_status() == "Good")
@@ -165,10 +177,16 @@ def stock_history(request):
     from itertools import chain
     from operator import attrgetter
 
-    all_item_history = Item.history.all()
-    all_device_history = Device.history.all()
+    search_query = request.GET.get('search', '')
 
-    combined_history = list(chain(all_item_history, all_device_history))
+    item_history = Item.history.all()
+    device_history = Device.history.all()
+
+    if search_query:
+        item_history = item_search(search_query, search_history=True)
+        device_history = Device.history.none()
+
+    combined_history = list(chain(item_history, device_history))
     combined_history = sorted(
         combined_history,
         key=attrgetter('history_date'),

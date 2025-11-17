@@ -1,3 +1,5 @@
 django
 psycopg[binary]
 python-dotenv
+django-simple-history
+django-dbbackup
