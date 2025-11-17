@@ -162,7 +162,43 @@ def analytics(request):
 
 
 def stock_history(request):
-    return redirect('home')
+    from itertools import chain
+    from operator import attrgetter
+
+    all_item_history = Item.history.all()
+    all_device_history = Device.history.all()
+
+    combined_history = list(chain(all_item_history, all_device_history))
+    combined_history = sorted(
+        combined_history,
+        key=attrgetter('history_date'),
+        reverse=True
+    )
+
+    for record in combined_history:
+        if isinstance(record, Item.history.model):
+            record.record_type = "Item"
+            record.object_name = record.name
+        else:
+            record.record_type = "Device"
+            record.object_name = record.mac_address
+
+        record.changes = []
+        previous_record = record.prev_record
+        if previous_record:
+            store_previous_record = record.diff_against(previous_record)
+            for change in store_previous_record.changes:
+                record.changes.append({
+                    'field': change.field,
+                    'old': change.old,
+                    'new': change.new
+                })
+
+    context = {
+        'combined_history': combined_history
+    }
+
+    return render(request, 'stock_history.html', context)
 
 
 def backup_restore(request):

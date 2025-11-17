@@ -7,7 +7,7 @@ ALLOWED_SIZES = {(2, 2), (2, 3)}  # height, width of device layout
 
 
 class Device(models.Model):
-    max_rows = 6
+    max_rows = 6  # Define your warehouse boundaries
     created_at = models.DateTimeField(auto_now_add=True)
     mac_address = models.CharField(max_length=50, unique=True)
     row = models.PositiveIntegerField(
@@ -73,6 +73,7 @@ class Item(models.Model):
     min_stock = models.PositiveIntegerField(
         validators=[MinValueValidator(1)]
     )
+    # Define your warehouse boundaries here
     row = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(6)]
     )

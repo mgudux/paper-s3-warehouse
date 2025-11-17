@@ -1,5 +1,78 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<div class="container-fluid mt-4">
+    <div class="card shadow-sm">
+        
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-clock-history me-2"></i>Stock History
+            </h5>
+            <small class="text-muted">All item and device changes</small>
+        </div>
 
+        <table class="table table-dark table-hover mb-0">
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 20%;">Date</th>
+                    <th scope="col" style="width: 15%;">Type</th>
+                    <th scope="col" style="width: 35%;">Object Details</th>
+                    <th scope="col" style="width: 15%;">Change</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in combined_history %}
+                <tr>
+                    <td style="white-space: nowrap;">
+                        {{ entry.history_date|date:"N j, Y, P" }}
+                    </td>
+                    <td>
+                        {% if entry.record_type == "Item" %}
+                            <i class="bi bi-box-seam me-2 text-primary"></i> Item
+                        {% else %}
+                            <i class="bi bi-hdd me-2 text-secondary"></i> Device
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if entry.record_type == "Item" %}
+                            <strong>{{ entry.object_name }}</strong>
+                            <small class="d-block" style="color: #adb5bd;">
+                                (R:{{ entry.row }} E:{{ entry.level }} K:{{ entry.box }})
+                            </small>
+                        {% else %}
+                            <strong>{{ entry.object_name }}</strong>
+                            <small class="d-block" style="color: #adb5bd;">
+                                (Row: {{ entry.row }})
+                            </small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if entry.history_type == '+' %}
+                            <span class="badge bg-success"><i class="bi bi-plus-lg me-1"></i> Created</span>
+                        {% elif entry.history_type == '~' %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-pencil-fill me-1"></i> Updated</span>
+                            {% if entry.changes %}
+                                <ul class="list-unstyled mt-2 mb-0 small">
+                                    {% for change in entry.changes %}
+                                    <li>
+                                        <strong>{{ change.field }}:</strong>
+                                        <span class="text-danger">{{ change.old|default:"(empty)" }}</span>
+                                        <i class="bi bi-arrow-right mx-1"></i>
+                                        <span class="text-success">{{ change.new|default:"(empty)" }}</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        {% elif entry.history_type == '-' %}
+                            <span class="badge bg-danger"><i class="bi bi-trash-fill me-1"></i> Deleted</span>
+                        {% else %}
+                            <span class="badge bg-info">{{ entry.get_history_type_display }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}
