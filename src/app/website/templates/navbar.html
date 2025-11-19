@@ -24,12 +24,14 @@
                         <span>Stock History</span>
                     </a>
                 </li>
+                {% if user.is_authenticated %}
                 <li class="nav-item">
                     <a class="nav-link d-flex align-items-center px-3" href="{% url 'backup_restore' %}">
                         <i class="bi bi-arrow-repeat me-2"></i>
                         <span>Backup</span>
                     </a>
                 </li>
+                {% endif %}
             </ul>
             <div class="d-flex align-items-center me-3">
                 <div class="search-container">

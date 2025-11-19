@@ -7,17 +7,18 @@ ALLOWED_SIZES = {(2, 2), (2, 3)}  # height, width of device layout
 
 
 class Device(models.Model):
-    max_rows = 6  # Define your warehouse boundaries
+    max_rows = 6  # Maximum number of rows in the warehouse
+
     created_at = models.DateTimeField(auto_now_add=True)
     mac_address = models.CharField(max_length=50, unique=True)
     row = models.PositiveIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(max_rows)]
+        validators=[MinValueValidator(1), MaxValueValidator(6)]
     )
     bottom_level = models.PositiveIntegerField(  # lowest possible box (bottom most box)
         validators=[MinValueValidator(1), MaxValueValidator(3)]
     )
     left_box = models.PositiveIntegerField(  # left-most box
-        validators=[MinValueValidator(1), MaxValueValidator(5)]
+        validators=[MinValueValidator(1), MaxValueValidator(4)]
     )
     height = models.PositiveIntegerField(
         validators=[MinValueValidator(2), MaxValueValidator(2)]
@@ -48,16 +49,6 @@ class Device(models.Model):
         if (self.height, self.width) not in ALLOWED_SIZES:
             raise ValidationError(
                 "Unsupported touch-zone layout, choose 2 as height and 2 or 3 as width")
-
-        my_footprint = set(self.footprint_boxes())
-        for device in Device.objects.exclude(pk=self.pk):
-            other_footprint = set(device.footprint_boxes())
-            check_overlap = my_footprint & other_footprint
-            if check_overlap:  # & creates a new list when an element exists in both
-                locations = ", ".join(
-                    [f"R{r}-E{e}-K{k}" for r, e, k in check_overlap])
-                raise ValidationError(
-                    f"The devices {self.__str__()} and {device.__str__()} are overlapping at location: {locations}")
 
 
 class Item(models.Model):

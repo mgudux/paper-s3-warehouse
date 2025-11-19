@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 from django.contrib.postgres.search import TrigramSimilarity
 from .models import Device, Item
-from .forms import UpdateItemFormFull, UpdateItemFormBasic
+from .forms import UpdateItemFormFull, UpdateItemFormBasic, UpdateDeviceForm
 import re
 
 
@@ -98,7 +99,7 @@ def home(request):
         return render(request, 'home.html', context)
 
     total_stats = {
-        'item_count': Item.objects.all().count(),  # ✅ Use Item.objects
+        'item_count': Item.objects.all().count(),
         'critical_count': sum(1 for item in Item.objects.all() if item.stock_status() == "Critical"),
         'low_count': sum(1 for item in Item.objects.all() if item.stock_status() == "Low"),
         'good_count': sum(1 for item in Item.objects.all() if item.stock_status() == "Good")
@@ -287,6 +288,7 @@ def stock_history(request):
     return render(request, 'stock_history.html', context)
 
 
+@login_required
 def backup_restore(request):
     from django.core.management import call_command
     from django.conf import settings
@@ -335,9 +337,9 @@ def backup_restore(request):
         # newest first
         all_backup_files.sort(key=lambda x: x['mtime'], reverse=True)
 
-        # delete anything beyond the 30 most recent backups
-        backups = all_backup_files[:30]
-        for old_backup in all_backup_files[30:]:
+        # delete anything beyond the 50 most recent backups
+        backups = all_backup_files[:50]
+        for old_backup in all_backup_files[50:]:
             try:
                 os.remove(old_backup['filepath'])
             except Exception as e:
@@ -346,8 +348,50 @@ def backup_restore(request):
     return render(request, 'backup.html', {'backups': backups})
 
 
-def firmware_generator():
-    pass
+@login_required
+def update_device(request, pk):
+    from django.http import JsonResponse
+
+    device = get_object_or_404(Device, pk=pk)
+    if request.method != "POST":
+        return redirect('home')
+
+    # Store old values before processing
+    old_bottom = device.bottom_level
+    old_left = device.left_box
+
+    form = UpdateDeviceForm(request.POST, instance=device)
+    if not form.is_valid():
+        return JsonResponse({'success': False, 'errors': form.errors})
+
+    new_bottom = form.cleaned_data['bottom_level']
+    new_left = form.cleaned_data['left_box']
+
+    # Find conflicting device
+    new_footprint = set(Device(pk=device.pk, row=device.row, bottom_level=new_bottom,
+                               left_box=new_left, height=device.height, width=device.width).footprint_boxes())
+    conflict = next((d for d in Device.objects.exclude(pk=device.pk)
+                     if new_footprint & set(d.footprint_boxes())), None)
+
+    # Request confirmation if conflict exists and not yet confirmed
+    if conflict and request.POST.get('confirm_swap') != 'true':
+        return JsonResponse({
+            'success': False,
+            'requires_confirmation': True,
+            'conflict_device': {'mac_address': conflict.mac_address, 'location': str(conflict)}
+        })
+
+    if conflict:
+        Device.objects.filter(pk=conflict.pk).update(
+            bottom_level=old_bottom, left_box=old_left)
+        messages.success(request, "Device positions swapped successfully!")
+    else:
+        messages.success(request, "Device configuration has been updated!")
+
+    # Update current device to NEW position
+    Device.objects.filter(pk=device.pk).update(
+        bottom_level=new_bottom, left_box=new_left)
+    return JsonResponse({'success': True})
 
 
 def health_check():
