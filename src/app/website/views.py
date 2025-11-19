@@ -187,6 +187,8 @@ def analytics(request):
                 'name': item.name,
                 'location': item.location_label(),
                 'total_consumed': total_consumed,
+                'current_stock': item.stock,
+                'min_stock': item.min_stock,
             })
 
     top_consumed = sorted(
@@ -305,7 +307,7 @@ def backup_restore(request):
             except Exception as e:
                 messages.error(request, f"Restore failed: {str(e)}")
 
-        return redirect('backup_restore')
+        return redirect('home')
 
     # List all backups
     backup_dir = settings.STORAGES['dbbackup']['OPTIONS']['location']
@@ -345,6 +347,7 @@ def update_device(request, pk):
     if request.method != "POST":
         return redirect('home')
 
+    old_row = device.row
     old_bottom = device.bottom_level
     old_left = device.left_box
 
@@ -352,10 +355,11 @@ def update_device(request, pk):
     if not form.is_valid():
         return JsonResponse({'success': False, 'errors': form.errors})
 
+    new_row = form.cleaned_data['row']
     new_bottom = form.cleaned_data['bottom_level']
     new_left = form.cleaned_data['left_box']
 
-    new_footprint = set(Device(pk=device.pk, row=device.row, bottom_level=new_bottom,
+    new_footprint = set(Device(pk=device.pk, row=new_row, bottom_level=new_bottom,
                                left_box=new_left, height=device.height, width=device.width).footprint_boxes())
     conflict = next((d for d in Device.objects.exclude(pk=device.pk)
                      if new_footprint & set(d.footprint_boxes())), None)
@@ -368,10 +372,12 @@ def update_device(request, pk):
         })
 
     if conflict:
-        Device.objects.filter(pk=conflict.pk).update(bottom_level=old_bottom, left_box=old_left)
+        Device.objects.filter(pk=conflict.pk).update(
+            row=old_row, bottom_level=old_bottom, left_box=old_left)
         messages.success(request, "Device positions swapped successfully!")
     else:
         messages.success(request, "Device configuration has been updated!")
 
-    Device.objects.filter(pk=device.pk).update(bottom_level=new_bottom, left_box=new_left)
+    Device.objects.filter(pk=device.pk).update(
+        row=new_row, bottom_level=new_bottom, left_box=new_left)
     return JsonResponse({'success': True})

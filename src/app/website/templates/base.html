@@ -162,12 +162,14 @@
         /* --- Filter Badge Styles --- */
         .filter-badge {
             background: rgba(255, 255, 255, 0.1);
-            padding: 8px 14px;
+            padding: 6px 12px;
             border-radius: 8px;
-            display: flex;
-            gap: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             cursor: pointer;
             transition: background .2s;
+            border: 1px solid transparent;
         }
 
         .filter-badge:hover {
@@ -180,29 +182,30 @@
         }
 
         .status-dot {
-            width: 10px;
-            height: 10px;
-            left: -7px;
-            border-radius: 50%; 
+            width: 12px;
+            height: 12px;
+            left: -10px;
+            border-radius: 50%;
             display: inline-block;
             position: relative;
+            flex-shrink: 0;
         }
 
         .status-dot .count {
             position: absolute;
-            left: 18px;
-            top: -3px;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
             font-size: .75rem;
-            font-weight: 700;
+            font-weight: 600;
             color: #fff;
             white-space: nowrap;
         }
 
         .status-dots {
-            display: flex;
-            gap: 45px; 
+            display: inline-flex;
+            gap: 30px;
             align-items: center;
-            margin-left: -10px; 
         }
 
         .critical-dot {

@@ -17,8 +17,9 @@ class UpdateItemFormBasic(forms.ModelForm):
 class UpdateDeviceForm(forms.ModelForm):
     class Meta:
         model = models.Device
-        fields = ["bottom_level", "left_box"]
+        fields = ["row", "bottom_level", "left_box"]
         widgets = {
+            'row': forms.Select(choices=[(i, str(i)) for i in range(1, 7)]),
             'bottom_level': forms.Select(choices=[(1, '1'), (3, '3')]),
             'left_box': forms.Select(choices=[(1, '1'), (4, '4')]),
         }

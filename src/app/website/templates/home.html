@@ -12,7 +12,7 @@
         </a>
       </div>
 
-      <div class="card bg-dark border-secondary shadow mb-4">
+      <div class="card bg-dark border-secondary shadow mb-3">
         <div class="card-header bg-secondary text-white">
           <h5 class="mb-0">
             <i class="bi bi-funnel"></i> Results for "{{ search_query }}"
@@ -105,7 +105,7 @@
 
       {% if rows_data %}
         {% for row_data in rows_data %}
-          <div class="row-container" data-row="{{ row_data.row_number }}">
+          <div class="row-container mb-5" data-row="{{ row_data.row_number }}">
             <div class="row-header clickable" onclick="toggleRow({{ row_data.row_number }})">
               <div class="d-flex justify-content-between align-items-center">
                 <h3 class="text-white mb-0">
@@ -123,6 +123,7 @@
                          {% if user.is_authenticated %}
                          data-device-id="{{ device_data.device.id }}"
                          data-device-mac="{{ device_data.device.mac_address }}"
+                         data-device-row="{{ device_data.device.row }}"
                          data-device-bottom-level="{{ device_data.device.bottom_level }}"
                          data-device-left-box="{{ device_data.device.left_box }}"
                          {% endif %}>
@@ -252,6 +253,18 @@
               <input type="text" class="form-control bg-dark border-secondary text-white" id="deviceMac" readonly>
             </div>
             <div class="mb-3">
+              <label for="deviceRow" class="form-label text-white">Reihe (Row)</label>
+              <select class="form-select bg-dark border-secondary text-white" id="deviceRow" name="row" required>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+              </select>
+              <small class="text-muted">Die Reihe des Geräts (1 bis 6).</small>
+            </div>
+            <div class="mb-3">
               <label for="deviceBottomLevel" class="form-label text-white">Unterste Ebene (Bottom Level)</label>
               <select class="form-select bg-dark border-secondary text-white" id="deviceBottomLevel" name="bottom_level" required>
                 <option value="1">1</option>
@@ -320,6 +333,7 @@
         const d = e.relatedTarget.closest('.device-box');
         document.getElementById('deviceId').value = d.getAttribute('data-device-id');
         document.getElementById('deviceMac').value = d.getAttribute('data-device-mac');
+        document.getElementById('deviceRow').value = d.getAttribute('data-device-row');
         document.getElementById('deviceBottomLevel').value = d.getAttribute('data-device-bottom-level');
         document.getElementById('deviceLeftBox').value = d.getAttribute('data-device-left-box');
       });
@@ -332,6 +346,7 @@
       function submitDevice(confirmSwap) {
         const formData = new FormData();
         formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('row', document.getElementById('deviceRow').value);
         formData.append('bottom_level', document.getElementById('deviceBottomLevel').value);
         formData.append('left_box', document.getElementById('deviceLeftBox').value);
         if (confirmSwap) formData.append('confirm_swap', 'true');
