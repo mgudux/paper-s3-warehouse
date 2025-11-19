@@ -158,6 +158,215 @@
             height: 38px;
             font-size: 0.9rem;
         }
+
+        /* --- Filter Badge Styles --- */
+        .filter-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 14px;
+            border-radius: 8px;
+            display: flex;
+            gap: 6px;
+            cursor: pointer;
+            transition: background .2s;
+        }
+
+        .filter-badge:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .filter-badge.active {
+            background: rgba(13, 110, 253, 0.2);
+            border: 1px solid #0d6efd;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            left: -7px;
+            border-radius: 50%; 
+            display: inline-block;
+            position: relative;
+        }
+
+        .status-dot .count {
+            position: absolute;
+            left: 18px;
+            top: -3px;
+            font-size: .75rem;
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
+        }
+
+        .status-dots {
+            display: flex;
+            gap: 45px; 
+            align-items: center;
+            margin-left: -10px; 
+        }
+
+        .critical-dot {
+            background: #dc3545;
+        }
+
+        .warning-dot {
+            background: #ffc107;
+        }
+
+        .success-dot {
+            background: #28a745;
+        }
+
+        .empty-dot {
+            background: #6c757d;
+        }
+
+        /* --- Row/Container Styles (Collapsible) --- */
+        .row-container {
+            background: #1a1d20;
+            border: 2px solid #2c3034;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .row-container.collapsed .row-content {
+            display: none;
+        }
+
+        .row-header {
+            background: rgba(13, 110, 253, 0.1);
+            padding: 12px 20px;
+            border-bottom: 1px solid #2c3034;
+            cursor: pointer;
+            user-select: none;
+            transition: background .2s;
+        }
+
+        .row-header:hover {
+            background: rgba(13, 110, 253, 0.15);
+        }
+
+        .row-header .chevron-icon {
+            font-size: 1.5rem;
+            transition: transform .3s;
+        }
+
+        .row-container.collapsed .chevron-icon {
+            transform: rotate(-90deg);
+        }
+
+        .row-content {
+            padding: 12px;
+        }
+
+        /* --- Device Box Styles --- */
+        .device-box {
+            background: #0f1113;
+            border: 2px solid #2c3034;
+            border-radius: 12px;
+            padding: 14px;
+            transition: border-color .2s;
+        }
+
+        .device-box:hover {
+            border-color: #0d6efd;
+        }
+
+        .device-clickable {
+            cursor: pointer;
+        }
+
+        .device-clickable:hover {
+            border-color: #ffc107 !important;
+        }
+
+        .device-header {
+            padding-bottom: 8px;
+            border-bottom: 1px solid #2c3034;
+            margin-bottom: 10px;
+        }
+
+        .device-clickable .device-header {
+            cursor: pointer;
+            transition: background .2s;
+        }
+
+        .device-clickable .device-header:hover {
+            background: rgba(255, 193, 7, 0.1);
+            border-radius: 8px;
+        }
+
+        /* --- Item Grid/Box Styles --- */
+        .items-grid {
+            display: grid;
+            gap: 5px;
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .item-box {
+            background: #0f1113;
+            border: 1px solid #2c3034;
+            border-radius: 6px;
+            padding: 6px 8px;
+            cursor: pointer;
+            transition: background .2s, transform .2s;
+        }
+
+        .item-box:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(2px);
+        }
+
+        .item-critical {
+            border-left: 3px solid #dc3545;
+            background: rgba(220, 53, 69, 0.08);
+        }
+
+        .item-low {
+            border-left: 3px solid #ffc107;
+            background: rgba(255, 193, 7, 0.08);
+        }
+
+        .item-good {
+            border-left: 3px solid #28a745;
+            background: rgba(40, 167, 69, 0.08);
+        }
+
+        .item-box.hidden {
+            display: none;
+        }
+
+        .item-name {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .item-location {
+            color: #adb5bd;
+        }
+
+        .item-stock {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .stock-divider {
+            color: #6c757d;
+            margin: 0 2px;
+        }
+
+        .stock-min {
+            color: #adb5bd;
+        }
+
+        .no-items {
+            text-align: center;
+            padding: 30px;
+            color: #adb5bd;
+        }
     </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
@@ -195,12 +404,10 @@
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
                     const searchQuery = this.value.toLowerCase().trim();
-                    
-                    // Search for items on home page (warehouse view)
+
                     if (typeof window.applyFilters === 'function') {
                         window.applyFilters();
                     } else {
-                        // Fallback for pages without applyFilters
                         const itemBoxes = document.querySelectorAll('.item-box');
                         itemBoxes.forEach(item => {
                             const itemText = (item.querySelector('.item-name')?.textContent || '') + ' ' +
@@ -210,10 +417,8 @@
                         });
                     }
 
-                    // Search for history records on stock_history page
                     const historyRows = document.querySelectorAll('table tbody tr');
                     historyRows.forEach(row => {
-                        // Get all text content from the row
                         const rowText = row.textContent.toLowerCase();
                         const matches = !searchQuery || rowText.includes(searchQuery);
                         row.style.display = matches ? '' : 'none';

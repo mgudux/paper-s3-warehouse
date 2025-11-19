@@ -203,103 +203,71 @@
     {% endif %}
   </div>
 
-  <!-- Item Update Modal -->
-  <div class="modal fade" id="updateItemModal" tabindex="-1" aria-labelledby="updateItemModalLabel" aria-hidden="true">
+  <div class="modal fade" id="updateItemModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content bg-dark border-secondary">
         <div class="modal-header border-secondary">
-          <h5 class="modal-title text-white" id="updateItemModalLabel">
-            <i class="bi bi-pencil-square me-2"></i> Update Item
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title text-white"><i class="bi bi-pencil-square me-2"></i>Update Item</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body p-4">
-          <form id="updateItemForm" method="post">
+          <form id="updateItemForm" method="post" action="/update_item/">
             {% csrf_token %}
             <input type="hidden" id="itemId" name="item_id">
-
             <div class="mb-3">
               <label for="itemName" class="form-label text-white">Item Name</label>
-              <input type="text" class="form-control bg-dark border-secondary text-white"
-                     id="itemName" name="name" {% if not user.is_authenticated %}readonly{% endif %}>
+              <input type="text" class="form-control bg-dark border-secondary text-white" id="itemName" name="name" {% if not user.is_authenticated %}readonly{% endif %}>
             </div>
-
             <div class="mb-3">
               <label for="itemStock" class="form-label text-white">Current Stock</label>
-              <input type="number" class="form-control bg-dark border-secondary text-white"
-                     id="itemStock" name="stock" required min="0">
+              <input type="number" class="form-control bg-dark border-secondary text-white" id="itemStock" name="stock" required min="0">
             </div>
-
             {% if user.is_authenticated %}
             <div class="mb-3">
               <label for="itemMinStock" class="form-label text-white">Minimum Stock</label>
-              <input type="number" class="form-control bg-dark border-secondary text-white"
-                     id="itemMinStock" name="min_stock" required min="1">
+              <input type="number" class="form-control bg-dark border-secondary text-white" id="itemMinStock" name="min_stock" required min="1">
             </div>
             {% endif %}
-
-            <button type="submit" class="btn btn-primary w-100">
-              <i class="bi bi-save"></i> Save Changes
-            </button>
+            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-save"></i> Save</button>
           </form>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Device Update Modal (Only for authenticated users) -->
   {% if user.is_authenticated %}
-  <div class="modal fade" id="updateDeviceModal" tabindex="-1" aria-labelledby="updateDeviceModalLabel" aria-hidden="true">
+  <div class="modal fade" id="updateDeviceModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content bg-dark border-secondary">
         <div class="modal-header border-secondary">
-          <h5 class="modal-title text-white" id="updateDeviceModalLabel">
-            <i class="bi bi-gear me-2"></i> Device Konfiguration
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title text-white"><i class="bi bi-gear me-2"></i>Device Konfiguration</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body p-4">
           <form id="updateDeviceForm" method="post">
             {% csrf_token %}
-            <input type="hidden" id="deviceId" name="device_id">
-
+            <input type="hidden" id="deviceId">
             <div class="mb-3">
               <label class="form-label text-white">MAC Address</label>
-              <input type="text" class="form-control bg-dark border-secondary text-white"
-                     id="deviceMac" readonly>
+              <input type="text" class="form-control bg-dark border-secondary text-white" id="deviceMac" readonly>
             </div>
-
             <div class="mb-3">
-              <label for="deviceBottomLevel" class="form-label text-white">
-                Unterste Ebene (Bottom Level)
-              </label>
-              <select class="form-select bg-dark border-secondary text-white"
-                      id="deviceBottomLevel" name="bottom_level" required>
+              <label for="deviceBottomLevel" class="form-label text-white">Unterste Ebene (Bottom Level)</label>
+              <select class="form-select bg-dark border-secondary text-white" id="deviceBottomLevel" name="bottom_level" required>
                 <option value="1">1</option>
                 <option value="3">3</option>
               </select>
-              <small class="form-text text-muted">
-                Die unterste Ebene, auf der das Gerät beginnt (1 oder 3). Das Gerät hat immer eine Höhe von 2 Ebenen.
-              </small>
+              <small class="text-muted">Die unterste Ebene (1 oder 3). Höhe ist immer 2 Ebenen.</small>
             </div>
-
             <div class="mb-3">
-              <label for="deviceLeftBox" class="form-label text-white">
-                Linke Kiste (Left Box)
-              </label>
-              <select class="form-select bg-dark border-secondary text-white"
-                      id="deviceLeftBox" name="left_box" required>
+              <label for="deviceLeftBox" class="form-label text-white">Linke Kiste (Left Box)</label>
+              <select class="form-select bg-dark border-secondary text-white" id="deviceLeftBox" name="left_box" required>
                 <option value="1">1</option>
                 <option value="4">4</option>
               </select>
-              <small class="form-text text-muted">
-                Die am weitesten links liegende Kiste, bei der das Gerät beginnt (1 oder 4). Das Gerät hat immer eine Breite von 3 Kisten.
-              </small>
+              <small class="text-muted">Die linke Kiste (1 oder 4). Breite ist immer 3 Kisten.</small>
             </div>
-
-            <button type="submit" class="btn btn-warning w-100">
-              <i class="bi bi-save"></i> Konfiguration Speichern
-            </button>
+            <button type="submit" class="btn btn-warning w-100"><i class="bi bi-save"></i> Speichern</button>
           </form>
         </div>
       </div>
@@ -307,320 +275,11 @@
   </div>
   {% endif %}
 
-  <style>
-    html {
-      scroll-snap-type: y proximity;
-    }
-
-    .container-fluid {
-      scroll-snap-align: start;
-    }
-
-    .filter-badge {
-      background: rgba(255,255,255,0.1);
-      padding: 10px 18px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid transparent;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      position: relative;
-    }
-
-    .filter-badge:hover {
-      background: rgba(255,255,255,0.15);
-      transform: scale(1.08);
-    }
-
-    .filter-badge.active {
-      background: rgba(13, 110, 253, 0.2);
-      border-color: #0d6efd;
-    }
-
-    .filter-badge.active::after {
-      content: '✓';
-      position: absolute;
-      top: -5px;
-      right: -5px;
-      background: #0d6efd;
-      color: white;
-      border-radius: 50%;
-      width: 18px;
-      height: 18px;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      display: inline-block;
-      position: relative;
-      right: 7px;
-    }
-
-    .status-dot:hover {
-      animation: softGlow 0.5s ease-in-out;
-    }
-
-    .status-dot .count {
-      position: absolute;
-      left: 12px;
-      top: -3px;
-      font-size: 0.7rem;
-      font-weight: bold;
-      white-space: nowrap;
-      color: #fff;
-    }
-
-    .status-dots {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-    }
-
-    .critical-dot {
-      background: #dc3545;
-      box-shadow: 0 0 8px rgba(220, 53, 69, 0.5);
-    }
-
-    .warning-dot {
-      background: #ffc107;
-      box-shadow: 0 0 8px rgba(255, 193, 7, 0.5);
-    }
-
-    .success-dot {
-      background: #28a745;
-      box-shadow: 0 0 8px rgba(40, 167, 69, 0.5);
-    }
-
-    .empty-dot {
-      background: #6c757d;
-      box-shadow: 0 0 4px rgba(108, 117, 125, 0.3);
-    }
-
-    @keyframes softGlow {
-      0%, 100% {
-        opacity: 0.6;
-        transform: scale(1);
-      }
-      50% {
-        opacity: 1;
-        transform: scale(1.1);
-      }
-    }
-
-    .row-container {
-      background: #1a1d20;
-      border: 2px solid #2c3034;
-      border-radius: 12px;
-      margin-bottom: 16px;
-      overflow: hidden;
-      transition: all 0.3s ease;
-      scroll-snap-align: start;
-    }
-
-    .row-container.collapsed .row-content {
-      display: none;
-    }
-
-    .row-container.collapsed .row-header {
-      border-bottom: none;
-    }
-
-    .row-header {
-      background: linear-gradient(135deg, rgba(13, 110, 253, 0.15) 0%, rgba(13, 110, 253, 0.05) 100%);
-      padding: 12px 20px;
-      border-bottom: 1px solid #2c3034;
-      transition: all 0.3s ease;
-    }
-
-    .row-header.clickable {
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .row-header.clickable:hover {
-      background: linear-gradient(135deg, rgba(13, 110, 253, 0.25) 0%, rgba(13, 110, 253, 0.1) 100%);
-    }
-
-    .row-header .chevron-icon {
-      font-size: 1.5rem;
-      transition: transform 0.3s ease;
-      color: #fff;
-    }
-
-    .row-container.collapsed .row-header .chevron-icon {
-      transform: rotate(-90deg);
-    }
-
-    .row-content {
-      padding: 12px;
-    }
-
-    .device-box {
-      background: #0f1113;
-      border: 2px solid #2c3034;
-      border-radius: 12px;
-      padding: 14px;
-      height: 100%;
-      position: relative;
-      transition: all 0.3s ease;
-    }
-
-    .device-box:hover {
-      border-color: #0d6efd;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
-    }
-
-    .device-clickable {
-      cursor: pointer;
-    }
-
-    .device-clickable:hover {
-      border-color: #ffc107 !important;
-      box-shadow: 0 4px 12px rgba(255, 193, 7, 0.25) !important;
-    }
-
-    .device-header {
-      padding-bottom: 8px;
-      border-bottom: 1px solid #2c3034;
-      margin-bottom: 10px;
-    }
-
-    .device-clickable .device-header {
-      cursor: pointer;
-    }
-
-    .device-clickable .device-header:hover {
-      background: rgba(255, 193, 7, 0.1);
-      border-radius: 8px;
-      padding: 8px;
-      margin: -8px -8px 10px -8px;
-    }
-
-    .device-header h5 {
-      font-size: 1.1rem;
-    }
-
-    .items-grid {
-      display: grid;
-      gap: 5px;
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(2, auto);
-      grid-auto-flow: row;
-    }
-
-    .item-box {
-      background: #0f1113;
-      border: 1px solid #2c3034;
-      border-radius: 6px;
-      padding: 6px 8px;
-      display: block;
-      text-decoration: none;
-      transition: all 0.2s;
-    }
-
-    .item-critical {
-      border-left: 3px solid #dc3545;
-      background: rgba(220, 53, 69, 0.08);
-    }
-
-    .item-low {
-      border-left: 3px solid #ffc107;
-      background: rgba(255, 193, 7, 0.08);
-    }
-
-    .item-good {
-      border-left: 3px solid #28a745;
-      background: rgba(40, 167, 69, 0.08);
-    }
-
-    .item-box:hover {
-      background: rgba(255,255,255,0.05);
-      transform: translateX(2px);
-      text-decoration: none;
-    }
-
-    .item-box.hidden {
-      display: none;
-    }
-
-    .item-name {
-      color: #fff;
-      font-weight: 600;
-      font-size: 1rem;
-      margin-bottom: 2px;
-    }
-
-    .item-box .d-flex.mt-1 {
-      margin-top: 2px !important;
-    }
-
-    .item-location {
-      color: #adb5bd;
-      font-size: 1.05rem;
-      font-weight: 500;
-    }
-
-    .item-stock {
-      background: rgba(255,255,255,0.08);
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 1.05rem;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-left: auto;
-    }
-
-    .stock-current {
-      color: #fff;
-    }
-
-    .stock-divider {
-      color: #6c757d;
-      margin: 0 2px;
-    }
-
-    .stock-min {
-      color: #adb5bd;
-    }
-
-    .no-items {
-      text-align: center;
-      padding: 30px 15px;
-      color: #c5cdd4;
-    }
-
-    .no-items i {
-      font-size: 2.5rem;
-      margin-bottom: 8px;
-      opacity: 0.6;
-      color: #adb5bd;
-    }
-
-    .no-items p {
-      color: #c5cdd4;
-      font-size: 0.95rem;
-    }
-  </style>
-
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       window.activeStatusFilter = null;
 
-      // Status Filter
-      const statusFilterBadges = document.querySelectorAll('.filter-badge[data-filter-type="status"]');
-      statusFilterBadges.forEach(badge => {
+      document.querySelectorAll('.filter-badge[data-filter-type="status"]').forEach(badge => {
         badge.addEventListener('click', function() {
           const filterType = this.dataset.filter;
           if (window.activeStatusFilter === filterType) {
@@ -631,170 +290,69 @@
             window.activeStatusFilter = filterType;
             this.classList.add('active');
           }
-          window.applyFilters();
+          applyFilters();
         });
       });
 
-        window.applyFilters = function() {
-          // Get current search
-          const searchInput = document.getElementById('realtimeSearch');
-          const searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
-
-          const allItems = document.querySelectorAll('.item-box');
-          allItems.forEach(item => {
-              // Check status filter
-              const matchesStatus = !window.activeStatusFilter || item.dataset.status === window.activeStatusFilter;
-
-              // Check search filter
-              const itemText = (item.querySelector('.item-name')?.textContent || '') + ' ' +
-                              (item.querySelector('.item-location')?.textContent || '');
-              const matchesSearch = !searchQuery || itemText.toLowerCase().includes(searchQuery);
-
-              // Show only if both match
-              item.classList.toggle('hidden', !(matchesStatus && matchesSearch));
-            });
-        }
-
-      // Prevent item boxes from triggering device modal
-      document.querySelectorAll('.item-box').forEach(itemBox => {
-        itemBox.addEventListener('click', function(e) {
-          e.stopPropagation();
+      function applyFilters() {
+        const searchQuery = document.getElementById('realtimeSearch')?.value.toLowerCase().trim() || '';
+        document.querySelectorAll('.item-box').forEach(item => {
+          const matchesStatus = !window.activeStatusFilter || item.dataset.status === window.activeStatusFilter;
+          const itemText = (item.querySelector('.item-name')?.textContent || '') + ' ' + (item.querySelector('.item-location')?.textContent || '');
+          item.classList.toggle('hidden', !(matchesStatus && (!searchQuery || itemText.toLowerCase().includes(searchQuery))));
         });
+      }
+      window.applyFilters = applyFilters;
+
+      document.querySelectorAll('.item-box').forEach(box => box.addEventListener('click', e => e.stopPropagation()));
+
+      document.getElementById('updateItemModal')?.addEventListener('show.bs.modal', function(e) {
+        const b = e.relatedTarget;
+        const itemId = b.getAttribute('data-item-id');
+        document.getElementById('itemId').value = itemId;
+        document.getElementById('itemName').value = b.getAttribute('data-item-name');
+        document.getElementById('itemStock').value = b.getAttribute('data-item-stock');
+        if (document.getElementById('itemMinStock')) document.getElementById('itemMinStock').value = b.getAttribute('data-item-min-stock');
+        document.getElementById('updateItemForm').action = `/update_item/${itemId}`;
       });
 
-      // Item Modal - Populate form when modal is shown
-      const updateItemModal = document.getElementById('updateItemModal');
-      if (updateItemModal) {
-        updateItemModal.addEventListener('show.bs.modal', function(event) {
-          const button = event.relatedTarget;
-          const itemId = button.getAttribute('data-item-id');
-          const itemName = button.getAttribute('data-item-name');
-          const itemStock = button.getAttribute('data-item-stock');
-          const itemMinStock = button.getAttribute('data-item-min-stock');
+      document.getElementById('updateDeviceModal')?.addEventListener('show.bs.modal', function(e) {
+        const d = e.relatedTarget.closest('.device-box');
+        document.getElementById('deviceId').value = d.getAttribute('data-device-id');
+        document.getElementById('deviceMac').value = d.getAttribute('data-device-mac');
+        document.getElementById('deviceBottomLevel').value = d.getAttribute('data-device-bottom-level');
+        document.getElementById('deviceLeftBox').value = d.getAttribute('data-device-left-box');
+      });
 
-          document.getElementById('itemId').value = itemId;
-          document.getElementById('itemName').value = itemName;
-          document.getElementById('itemStock').value = itemStock;
-          const minStockField = document.getElementById('itemMinStock');
-          if (minStockField) {
-            minStockField.value = itemMinStock;
-          }
-        });
-      }
+      document.getElementById('updateDeviceForm')?.addEventListener('submit', e => {
+        e.preventDefault();
+        submitDevice(false);
+      });
 
-      // Item Form Submission
-      const updateItemForm = document.getElementById('updateItemForm');
-      if (updateItemForm) {
-        updateItemForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          const itemId = document.getElementById('itemId').value;
-          const formData = new FormData(this);
-
-          fetch(`/update_item/${itemId}`, {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'X-Requested-With': 'XMLHttpRequest'
-            }
-          })
-          .then(response => response.text())
-          .then(() => {
-            window.location.reload();
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while updating the item.');
-          });
-        });
-      }
-
-      // Device Modal - Populate form when modal is shown
-      const updateDeviceModal = document.getElementById('updateDeviceModal');
-      if (updateDeviceModal) {
-        updateDeviceModal.addEventListener('show.bs.modal', function(event) {
-          const trigger = event.relatedTarget;
-          // Find the parent device-box element
-          const deviceBox = trigger.closest('.device-box');
-
-          const deviceId = deviceBox.getAttribute('data-device-id');
-          const deviceMac = deviceBox.getAttribute('data-device-mac');
-          const deviceBottomLevel = deviceBox.getAttribute('data-device-bottom-level');
-          const deviceLeftBox = deviceBox.getAttribute('data-device-left-box');
-
-          document.getElementById('deviceId').value = deviceId;
-          document.getElementById('deviceMac').value = deviceMac;
-          document.getElementById('deviceBottomLevel').value = deviceBottomLevel;
-          document.getElementById('deviceLeftBox').value = deviceLeftBox;
-        });
-      }
-
-      // Device Form Submission
-      const updateDeviceForm = document.getElementById('updateDeviceForm');
-      if (updateDeviceForm) {
-        updateDeviceForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          submitDeviceFormHandler(false);
-        });
-      }
-
-      // Function to submit device form with optional confirmation
-      function submitDeviceFormHandler(confirmSwap) {
-        const deviceId = document.getElementById('deviceId').value;
-        const bottomLevel = document.getElementById('deviceBottomLevel').value;
-        const leftBox = document.getElementById('deviceLeftBox').value;
-
-        // Create fresh FormData with current form values
+      function submitDevice(confirmSwap) {
         const formData = new FormData();
         formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-        formData.append('bottom_level', bottomLevel);
-        formData.append('left_box', leftBox);
+        formData.append('bottom_level', document.getElementById('deviceBottomLevel').value);
+        formData.append('left_box', document.getElementById('deviceLeftBox').value);
+        if (confirmSwap) formData.append('confirm_swap', 'true');
 
-        if (confirmSwap) {
-          formData.append('confirm_swap', 'true');
-        }
-
-        fetch(`/update_device/${deviceId}`, {
+        fetch(`/update_device/${document.getElementById('deviceId').value}`, {
           method: 'POST',
           body: formData,
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-          }
+          headers: {'X-Requested-With': 'XMLHttpRequest'}
         })
-        .then(response => response.json())
+        .then(r => r.json())
         .then(data => {
-          if (data.success) {
-            window.location.reload();
-          } else if (data.requires_confirmation) {
-            // Show confirmation dialog
-            const conflictDevice = data.conflict_device;
-            const confirmMessage = `Achtung! Es gibt bereits ein Gerät an dieser Position:\n\n` +
-                                  `MAC: ${conflictDevice.mac_address}\n` +
-                                  `Position: ${conflictDevice.location}\n\n` +
-                                  `Möchten Sie die Positionen der beiden Geräte tauschen?`;
-
-            if (confirm(confirmMessage)) {
-              // User confirmed, resubmit with confirmation
-              submitDeviceFormHandler(true);
-            }
-          } else if (data.errors) {
-            alert('Fehler beim Aktualisieren des Geräts: ' + JSON.stringify(data.errors));
-          } else {
-            alert('Ein Fehler ist aufgetreten.');
-          }
+          if (data.success) return window.location.reload();
+          if (data.requires_confirmation && confirm(`Achtung! Es gibt bereits ein Gerät an dieser Position:\n\nMAC: ${data.conflict_device.mac_address}\nPosition: ${data.conflict_device.location}\n\nMöchten Sie die Positionen der beiden Geräte tauschen?`)) submitDevice(true);
         })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('An error occurred while updating the device.');
-        });
+        .catch(() => alert('Ein Fehler ist aufgetreten.'));
       }
     });
 
-    // Reihen Dropdown
-    function toggleRow(rowNumber) {
-      const rowContainer = document.querySelector(`.row-container[data-row="${rowNumber}"]`);
-      rowContainer.classList.toggle('collapsed');
+    function toggleRow(n) {
+      document.querySelector(`.row-container[data-row="${n}"]`).classList.toggle('collapsed');
     }
-
   </script>
 
 {% endblock %}

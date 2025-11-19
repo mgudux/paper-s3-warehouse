@@ -32,7 +32,6 @@ def item_search(query, search_history=False):
     matches = re.findall(r'([RrEeLlKkBb])[\s:]*(\d+)', query)
 
     if matches:
-        # Found prefixed values, assign based on prefix
         location_parsed = True
         for prefix, number in matches:
             if prefix.upper() in ['R']:
@@ -42,7 +41,6 @@ def item_search(query, search_history=False):
             elif prefix.upper() in ['K', 'B']:
                 box = number
     else:
-        # No prefixes found, use location parsing
         location_match = re.search(
             r'(?P<row>\d)(?:\D*(?P<level>\d)(?:\D*(?P<box>\d))?)?',
             query
@@ -55,7 +53,6 @@ def item_search(query, search_history=False):
             box = location_match.group('box')
 
     if location_parsed:
-        # Build filter to search items in database
         filters = Q()
         if row and int(row) != 0:
             filters &= Q(row=int(row))
@@ -64,7 +61,6 @@ def item_search(query, search_history=False):
         if box and int(box) != 0:
             filters &= Q(box=int(box))
 
-        # Query if we have valid filters
         if filters:
             results = ItemModel.filter(filters).order_by('row', 'level', 'box')
             # Only use select_related for non-historical queries
@@ -154,22 +150,15 @@ def login_user(request):
 
 
 def update_item(request, pk):
+    if request.method != "POST":
+        return redirect('home')
     item = get_object_or_404(Item, pk=pk)
-    if request.user.is_authenticated:
-        FormClass = UpdateItemFormFull
-    else:
-        FormClass = UpdateItemFormBasic
-    if request.method == "POST":
-        form = FormClass(request.POST, instance=item)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Item has been updated!")
-            return redirect('home')
-        else:
-            messages.warning(request, "Invalid form, please try again.")
-    else:
-        form = FormClass(instance=item)
-    return render(request, "update_item.html", {"form": form})
+    FormClass = UpdateItemFormFull if request.user.is_authenticated else UpdateItemFormBasic
+    form = FormClass(request.POST, instance=item)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Item updated!")
+    return redirect('home')
 
 
 def analytics(request):
@@ -356,7 +345,6 @@ def update_device(request, pk):
     if request.method != "POST":
         return redirect('home')
 
-    # Store old values before processing
     old_bottom = device.bottom_level
     old_left = device.left_box
 
@@ -367,13 +355,11 @@ def update_device(request, pk):
     new_bottom = form.cleaned_data['bottom_level']
     new_left = form.cleaned_data['left_box']
 
-    # Find conflicting device
     new_footprint = set(Device(pk=device.pk, row=device.row, bottom_level=new_bottom,
                                left_box=new_left, height=device.height, width=device.width).footprint_boxes())
     conflict = next((d for d in Device.objects.exclude(pk=device.pk)
                      if new_footprint & set(d.footprint_boxes())), None)
 
-    # Request confirmation if conflict exists and not yet confirmed
     if conflict and request.POST.get('confirm_swap') != 'true':
         return JsonResponse({
             'success': False,
@@ -382,17 +368,10 @@ def update_device(request, pk):
         })
 
     if conflict:
-        Device.objects.filter(pk=conflict.pk).update(
-            bottom_level=old_bottom, left_box=old_left)
+        Device.objects.filter(pk=conflict.pk).update(bottom_level=old_bottom, left_box=old_left)
         messages.success(request, "Device positions swapped successfully!")
     else:
         messages.success(request, "Device configuration has been updated!")
 
-    # Update current device to NEW position
-    Device.objects.filter(pk=device.pk).update(
-        bottom_level=new_bottom, left_box=new_left)
+    Device.objects.filter(pk=device.pk).update(bottom_level=new_bottom, left_box=new_left)
     return JsonResponse({'success': True})
-
-
-def health_check():
-    pass
