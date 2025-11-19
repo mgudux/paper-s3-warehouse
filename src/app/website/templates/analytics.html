@@ -1,5 +1,96 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <h1 class="display-6 fw-bold text-white mb-0">
+                <i class="bi bi-graph-up"></i> Analytics
+            </h1>
+        </div>
+    </div>
 
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-white">
+                <i class="bi bi-arrow-down-circle me-2"></i>Top 10 most used items
+            </h5>
+            <small style="color: #b0b8c0;">Items removed from stock the most</small>
+        </div>
+        <table class="table table-dark table-hover mb-0">
+            <thead>
+                <tr>
+                    <th scope="col" class="text-white" style="width: 10%;">#</th>
+                    <th scope="col" class="text-white" style="width: 40%;">Item Name</th>
+                    <th scope="col" class="text-white" style="width: 25%;">Location</th>
+                    <th scope="col" class="text-white text-end" style="width: 25%;">Total Consumed</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if top_consumed %}
+                    {% for item in top_consumed %}
+                    <tr>
+                        <td class="fw-bold text-muted">{{ forloop.counter }}</td>
+                        <td class="fw-semibold text-info">{{ item.name }}</td>
+                        <td><span class="badge bg-secondary">{{ item.location }}</span></td>
+                        <td class="text-end">
+                            <span class="badge bg-danger">{{ item.total_consumed }} units</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center" style="color: #c5cdd4;">
+                            <i class="bi bi-info-circle me-2"></i>No consumption data available
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-white">
+                <i class="bi bi-exclamation-triangle me-2"></i>Top 10 most critical items
+            </h5>
+            <small style="color: #b0b8c0;">Items most often in critical stock status</small>
+        </div>
+        <table class="table table-dark table-hover mb-0">
+            <thead>
+                <tr>
+                    <th scope="col" class="text-white" style="width: 10%;">#</th>
+                    <th scope="col" class="text-white" style="width: 30%;">Item Name</th>
+                    <th scope="col" class="text-white" style="width: 20%;">Location</th>
+                    <th scope="col" class="text-white text-end" style="width: 20%;">Current Stock</th>
+                    <th scope="col" class="text-white text-end" style="width: 20%;">Critical Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if top_critical %}
+                    {% for item in top_critical %}
+                    <tr>
+                        <td class="fw-bold text-muted">{{ forloop.counter }}</td>
+                        <td class="fw-semibold text-info">{{ item.name }}</td>
+                        <td><span class="badge bg-secondary">{{ item.location }}</span></td>
+                        <td class="text-end">
+                            <span class="badge bg-warning text-dark">{{ item.current_stock }}/{{ item.min_stock }}</span>
+                        </td>
+                        <td class="text-end">
+                            <span class="badge bg-danger">{{ item.critical_count }} times</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center" style="color: #c5cdd4;">
+                            <i class="bi bi-info-circle me-2"></i>No critical status data available
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
 {% endblock %}

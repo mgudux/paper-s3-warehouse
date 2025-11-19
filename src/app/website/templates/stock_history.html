@@ -5,19 +5,19 @@
     <div class="card shadow-sm">
         
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
+            <h5 class="mb-0 text-white">
                 <i class="bi bi-clock-history me-2"></i>Stock History
             </h5>
-            <small class="text-muted">All item and device changes</small>
+            <small style="color: #b0b8c0;">All item and device changes</small>
         </div>
 
         <table class="table table-dark table-hover mb-0">
             <thead>
                 <tr>
-                    <th scope="col" style="width: 20%;">Date</th>
-                    <th scope="col" style="width: 15%;">Type</th>
-                    <th scope="col" style="width: 35%;">Object Details</th>
-                    <th scope="col" style="width: 15%;">Change</th>
+                    <th scope="col" class="text-white" style="width: 20%;">Date</th>
+                    <th scope="col" class="text-white" style="width: 15%;">Type</th>
+                    <th scope="col" class="text-white" style="width: 35%;">Object Details</th>
+                    <th scope="col" class="text-white" style="width: 15%;">Change</th>
                 </tr>
             </thead>
             <tbody>
@@ -35,13 +35,13 @@
                     </td>
                     <td>
                         {% if entry.record_type == "Item" %}
-                            <strong>{{ entry.object_name }}</strong>
-                            <small class="d-block" style="color: #adb5bd;">
+                            <strong class="text-white">{{ entry.object_name }}</strong>
+                            <small class="d-block" style="color: #c5cdd4;">
                                 (R:{{ entry.row }} E:{{ entry.level }} K:{{ entry.box }})
                             </small>
                         {% else %}
-                            <strong>{{ entry.object_name }}</strong>
-                            <small class="d-block" style="color: #adb5bd;">
+                            <strong class="text-white">{{ entry.object_name }}</strong>
+                            <small class="d-block" style="color: #c5cdd4;">
                                 (Row: {{ entry.row }})
                             </small>
                         {% endif %}

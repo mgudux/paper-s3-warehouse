@@ -37,14 +37,9 @@ class Device(models.Model):
         )
 
     def __str__(self):
-        bold_map = str.maketrans('0123456789', '𝟎𝟏𝟐𝟑𝟒𝟓𝟔𝟕𝟖𝟗')
         return (
-            f"𝗥{str(self.row).translate(bold_map)}-"
-            f"𝗘{str(self.bottom_level).translate(bold_map)}-"
-            f"𝗞{str(self.left_box).translate(bold_map)} "
-            f"[{self.height}x{self.width}: "
-            f"E{self.bottom_level}-{self.bottom_level + self.height - 1}, "
-            f"K{self.left_box}-{self.left_box + self.width - 1}]"
+            f"Ebenen: {self.bottom_level}-{self.bottom_level + self.height - 1} | "
+            f"Kisten: {self.left_box}-{self.left_box + self.width - 1}"
         )
 
     def clean(self):

@@ -58,12 +58,15 @@ STORAGES = {
     'dbbackup': {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
         'OPTIONS': {
-            'location': '/backup',
+            'location': str(BASE_DIR.parent.parent / 'backup'),
         },
     },
 }
 
 DBBACKUP_FILENAME_TEMPLATE = '{datetime}.psql.bin'
+
+# Add PostgreSQL to PATH for dbbackup
+os.environ['PATH'] = r'C:\Program Files\PostgreSQL\18\bin' + os.pathsep + os.environ.get('PATH', '')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
