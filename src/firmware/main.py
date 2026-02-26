@@ -10,7 +10,7 @@ from M5 import *
 from m5ble import *
 
 # ============================================================================
-# CONFIGURATION
+# CONFIGURATIONS FOR POWER SAVING : Battery life of 3-4 years
 # ============================================================================
 # Disable serial output to save power
 PRODUCTION_MODE = True
@@ -30,6 +30,7 @@ UART_SERVICE_UUID = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
 UART_RX_UUID = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
 UART_TX_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 
+# FALLBACK incase inventory json is not accessible
 DEFAULT_INVENTORY = [
     {"chest_id": "temp_1", "item": "Placeholder 1", "current": 1, "min_stock": 1},
     {"chest_id": "temp_2", "item": "Placeholder 2", "current": 1, "min_stock": 1},
