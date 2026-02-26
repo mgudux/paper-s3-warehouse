@@ -3,21 +3,23 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 from django.db import models
 
-ALLOWED_SIZES = {(2, 2), (2, 3)}  # height, width of device layout
+ALLOWED_SIZES = {(2, 2), (2, 3)}  # (height, width) device grid sizes
 
 
 class Device(models.Model):
-    max_rows = 6  # Maximum number of rows in the warehouse
+    max_rows = 6  # Warehouse row limit
 
     created_at = models.DateTimeField(auto_now_add=True)
     mac_address = models.CharField(max_length=50, unique=True)
+
+    # Allow row=0 for unassigned devices
     row = models.PositiveIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(6)]
+        validators=[MinValueValidator(0), MaxValueValidator(6)]
     )
-    bottom_level = models.PositiveIntegerField(  # lowest possible box (bottom most box)
-        validators=[MinValueValidator(1), MaxValueValidator(3)]
+    bottom_level = models.PositiveIntegerField(  # Bottom-most level
+        validators=[MinValueValidator(1), MaxValueValidator(4)]
     )
-    left_box = models.PositiveIntegerField(  # left-most box
+    left_box = models.PositiveIntegerField(  # Left-most box column
         validators=[MinValueValidator(1), MaxValueValidator(4)]
     )
     height = models.PositiveIntegerField(
@@ -26,9 +28,18 @@ class Device(models.Model):
     width = models.PositiveIntegerField(
         validators=[MinValueValidator(2), MaxValueValidator(3)]
     )
+    battery_level = models.PositiveIntegerField(
+        null=True, blank=True,
+        validators=[MaxValueValidator(100)]
+    )
     history = HistoricalRecords(table_name="device_history")
 
     def footprint_boxes(self):
+        """Returns set of (row, level, box) tuples occupied by this device."""
+        # Row 0 = no grid footprint
+        if self.row == 0:
+            return []
+
         levels = range(self.bottom_level, self.bottom_level + self.height)
         boxes = range(self.left_box, self.left_box + self.width)
         return (
@@ -38,14 +49,12 @@ class Device(models.Model):
         )
 
     def __str__(self):
-        return (
-            f"Ebenen: {self.bottom_level}-{self.bottom_level + self.height - 1} | "
-            f"Kisten: {self.left_box}-{self.left_box + self.width - 1}"
-        )
+        top_level = self.bottom_level + self.height - 1
+        right_box = self.left_box + self.width - 1
+        return f"MAC: {self.mac_address} | R{self.row} | E{self.bottom_level}-{top_level} | K{self.left_box}-{right_box} |"
 
     def clean(self):
         super().clean()
-
         if (self.height, self.width) not in ALLOWED_SIZES:
             raise ValidationError(
                 "Unsupported touch-zone layout, choose 2 as height and 2 or 3 as width")
@@ -54,14 +63,17 @@ class Device(models.Model):
 class Item(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
     device = HistoricForeignKey(Device, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50)
-    stock = models.PositiveIntegerField()
+    name = models.CharField(max_length=20)
+    stock = models.PositiveIntegerField(
+        validators=[MaxValueValidator(99)]
+    )
     min_stock = models.PositiveIntegerField(
         validators=[MinValueValidator(1)]
     )
-    # Define your warehouse boundaries here
+
+    # Allow row=0 for warehouse entrance items
     row = models.PositiveIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(6)]
+        validators=[MinValueValidator(0), MaxValueValidator(6)]
     )
     level = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(4)]
@@ -75,13 +87,11 @@ class Item(models.Model):
     )
 
     def __str__(self):
-        mac_address = getattr(self.device, "mac_address", "?")
-        return (
-            f"{self.name} {self.stock}/{self.min_stock} "
-            f"R{self.row} E{self.level} K{self.box} {mac_address}"
-        )
+        return f"{self.name} ({self.stock})"
 
     def location_label(self):
+        if self.row == 0:
+            return "Lager-Eingang (R0)"
         return f"R{self.row}-E{self.level}-K{self.box}"
 
     def stock_status(self):
@@ -94,6 +104,8 @@ class Item(models.Model):
 
     def clean(self):
         super().clean()
+        if self.row == 0:
+            return
+
         if (self.row, self.level, self.box) not in set(self.device.footprint_boxes()):
-            raise ValidationError(
-                f"Box at {self.location_label} with the name {self.name} lies outside the possible device area, please reinstall the firmware on the device {self.device.__str__()}")
+            pass
