@@ -10,7 +10,7 @@ from M5 import *
 from m5ble import *
 
 
-# CONFIGURATIONS FOR POWER SAVING : Battery life of 3-4 years
+# CONFIGURATIONS FOR POWER SAVING : Battery life of 1-4 years depending on usage
 # ============================================================================
 PRODUCTION_MODE = True
 
