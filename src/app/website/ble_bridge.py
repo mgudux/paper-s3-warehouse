@@ -37,7 +37,7 @@ logging.basicConfig(
 logger = logging.getLogger("Bridge")
 
 
-=========================================
+# =========================================
 
 
 class DeviceHandler:
@@ -267,6 +267,7 @@ class BridgeManager:
             logger.info(f"Cleaning up task for {address}")
             del self.active_devices[address]
 
+# =====================================================
 
 if __name__ == "__main__":
     if sys.platform == "win32":
