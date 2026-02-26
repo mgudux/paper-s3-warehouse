@@ -33,7 +33,7 @@ https://github.com/user-attachments/assets/7dcdffc9-c973-4dbe-a684-dd5da1b88f28
 
 ## How it works
 
-1. A device wakes up when someone taps it
+1. A device wakes up within 3 seconds after pressing the button
 2. The worker taps `+` or `-` to adjust the count for an item
 3. After 10 seconds of no further input, the device sends the updated count over BLE to the bridge
 4. The bridge forwards it to the Django API
@@ -88,9 +88,9 @@ The web app runs on port 8000. You'll want to put nginx in front of it.
 
 ## Hardware
 
-The firmware targets the **M5Stack Paper S3**, an ESP32-S3 with a 9.7" e-paper display and a 2000mAh battery. The touch panel is a 3×2 grid (each cell is one shelf location).
+The firmware is designed for the **M5Stack Paper S3**, an ESP32-S3 e-paper display. The touch panel is a 3×2 grid (each cell is one shelf location).
 
-Each device covers a 2×2 or 2×3 block of shelf positions (height × width). The position is configured in the web UI, you set the row, the bottom level, and the leftmost box column. The device figures out which items belong to it based on that footprint.
+Each device covers a 2×3 block of shelf positions (height × width). The position is configured in the web UI, you set the row, the bottom level, and the leftmost box column. The device figures out which items belong to it based on that footprint. Everything is customizeable.
 
 ---
 
@@ -112,7 +112,6 @@ The search understands these codes. You can search for `R1`, `R1-E2`, `R1-E2-K3`
 - **Analytics**, top 10 most consumed items and most frequently critical items (90-day window)
 - **Device management**, configure device positions via the UI; swapping two devices' positions is handled automatically
 - **Database backups**, manual and automatic (daily at 00:01), keeps the last 50, restore from the UI
-- **OTA firmware updates**, serve `main.py` from the web server; devices pick it up on next boot via `boot.py`
 - Warning: Some Endpoints in URL are not accessible as some files are confidental. You can either remove those endpoints or add/change them.
 
 ---
