@@ -15,7 +15,7 @@
             <h5 class="mb-0 text-white">
                 <i class="bi bi-arrow-down-circle me-2"></i>Top 10 most used items
             </h5>
-            <small style="color: #b0b8c0;">Items removed from stock the most</small>
+            <small style="color: #b0b8c0;">Items removed from stock the most in the last 90 days</small>
         </div>
         <table class="table table-dark table-hover mb-0">
             <thead>
@@ -35,10 +35,16 @@
                         <td class="fw-semibold text-info">{{ item.name }}</td>
                         <td><span class="badge bg-secondary">{{ item.location }}</span></td>
                         <td class="text-end">
-                            <span class="badge bg-warning text-dark">{{ item.current_stock }}/{{ item.min_stock }}</span>
+                            {% if item.stock_status == "Critical" %}
+                                <span class="badge bg-danger">{{ item.current_stock }}/{{ item.min_stock }}</span>
+                            {% elif item.stock_status == "Low" %}
+                                <span class="badge bg-warning text-dark">{{ item.current_stock }}/{{ item.min_stock }}</span>
+                            {% else %}
+                                <span class="badge bg-success">{{ item.current_stock }}/{{ item.min_stock }}</span>
+                            {% endif %}
                         </td>
                         <td class="text-end">
-                            <span class="badge bg-danger">{{ item.total_consumed }} units</span>
+                            <span class="badge bg-primary">{{ item.total_consumed }} units</span>
                         </td>
                     </tr>
                     {% endfor %}
@@ -58,7 +64,7 @@
             <h5 class="mb-0 text-white">
                 <i class="bi bi-exclamation-triangle me-2"></i>Top 10 most critical items
             </h5>
-            <small style="color: #b0b8c0;">Items most often in critical stock status</small>
+            <small style="color: #b0b8c0;">Items that spent the most days in critical stock in the last 90 days</small>
         </div>
         <table class="table table-dark table-hover mb-0">
             <thead>
@@ -67,7 +73,7 @@
                     <th scope="col" class="text-white" style="width: 30%;">Item Name</th>
                     <th scope="col" class="text-white" style="width: 20%;">Location</th>
                     <th scope="col" class="text-white text-end" style="width: 20%;">Current Stock</th>
-                    <th scope="col" class="text-white text-end" style="width: 20%;">Critical Count</th>
+                    <th scope="col" class="text-white text-end" style="width: 20%;">Days Critical</th>
                 </tr>
             </thead>
             <tbody>
@@ -78,10 +84,16 @@
                         <td class="fw-semibold text-info">{{ item.name }}</td>
                         <td><span class="badge bg-secondary">{{ item.location }}</span></td>
                         <td class="text-end">
-                            <span class="badge bg-warning text-dark">{{ item.current_stock }}/{{ item.min_stock }}</span>
+                            {% if item.stock_status == "Critical" %}
+                                <span class="badge bg-danger">{{ item.current_stock }}/{{ item.min_stock }}</span>
+                            {% elif item.stock_status == "Low" %}
+                                <span class="badge bg-warning text-dark">{{ item.current_stock }}/{{ item.min_stock }}</span>
+                            {% else %}
+                                <span class="badge bg-success">{{ item.current_stock }}/{{ item.min_stock }}</span>
+                            {% endif %}
                         </td>
                         <td class="text-end">
-                            <span class="badge bg-danger">{{ item.critical_count }} times</span>
+                            <span class="badge bg-primary">{{ item.critical_days }} day{% if item.critical_days != 1 %}s{% endif %}</span>
                         </td>
                     </tr>
                     {% endfor %}

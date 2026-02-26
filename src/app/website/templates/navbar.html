@@ -32,11 +32,19 @@
                     </a>
                 </li>
                 {% endif %}
+                {% if user.is_staff %}
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center px-3" href="/admin/">
+                        <i class="bi bi-gear-fill me-2"></i>
+                        <span>Admin Panel</span>
+                    </a>
+                </li>
+                {% endif %}
             </ul>
             <div class="d-flex align-items-center me-3">
                 <div class="search-container">
                     <i class="bi bi-search search-icon"></i>
-                    <input type="text" id="realtimeSearch" class="form-control search-input" placeholder="Search items...">
+                    <input type="text" id="realtimeSearch" class="form-control search-input" placeholder="Search page...">
                 </div>
             </div>
             <ul class="navbar-nav">

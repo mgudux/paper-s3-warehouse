@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Lager Digital - Warehouse System</title>
+    <title>Digital Storage - Warehouse System</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -149,7 +149,7 @@
             left: 12px;
             top: 50%;
             transform: translateY(-50%);
-            color: #adb5bd;
+            color: #ffffff;
             z-index: 1;
         }
 
@@ -157,9 +157,16 @@
             padding-left: 38px;
             height: 38px;
             font-size: 0.9rem;
+            color: #ffffff;
+            background: transparent; 
+            border: 1px solid #495057;
         }
 
-        /* --- Filter Badge Styles --- */
+        .search-input::placeholder {
+            color: #ffffff !important;
+            opacity: 1;
+        }
+
         .filter-badge {
             background: rgba(255, 255, 255, 0.1);
             padding: 6px 12px;
@@ -224,7 +231,6 @@
             background: #6c757d;
         }
 
-        /* --- Row/Container Styles (Collapsible) --- */
         .row-container {
             background: #1a1d20;
             border: 2px solid #2c3034;
@@ -262,7 +268,6 @@
             padding: 12px;
         }
 
-        /* --- Device Box Styles --- */
         .device-box {
             background: #0f1113;
             border: 2px solid #2c3034;
@@ -299,7 +304,6 @@
             border-radius: 8px;
         }
 
-        /* --- Item Grid/Box Styles --- */
         .items-grid {
             display: grid;
             gap: 5px;
@@ -373,6 +377,7 @@
     </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
+    {{ redirect_to_login_immediately }}
     {% include 'navbar.html' %}
 
     <main class="flex-grow-1">
@@ -429,6 +434,43 @@
                 });
             }
         });
+
+        // Auto-logout: Client-side inactivity tracking (15 minutes) -> very important as some workers forget to logout
+        (function() {
+            const IDLE_TIMEOUT = 15 * 60 * 1000; // 15 minutes in milliseconds
+            let idleTimer = null;
+
+            function resetTimer() {
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(handleLogout, IDLE_TIMEOUT);
+            }
+
+            function handleLogout() {
+                // Clear all browser state
+                sessionStorage.clear();
+                localStorage.clear();
+
+                // Clear search inputs
+                const searchInputs = document.querySelectorAll('input[type="search"], input[id*="search"], input[class*="search"]');
+                searchInputs.forEach(input => input.value = '');
+
+                // Clear any active filters
+                const filterBadges = document.querySelectorAll('.filter-badge.active');
+                filterBadges.forEach(badge => badge.classList.remove('active'));
+
+                // Redirect to logout (this will clear session and redirect to login)
+                window.location.replace('/logout/');
+            }
+
+            // Track user activity events
+            const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click', 'keydown'];
+            activityEvents.forEach(function(eventName) {
+                document.addEventListener(eventName, resetTimer, true);
+            });
+
+            // Start the timer
+            resetTimer();
+        })();
     </script>
 </body>
 </html>

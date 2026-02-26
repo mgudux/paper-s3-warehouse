@@ -43,17 +43,11 @@
                       <td class="text-end">{{ item.min_stock }}</td>
                       <td class="text-center">
                         {% if item.stock_status == "Critical" %}
-                          <span class="badge bg-danger">
-                            <i class="bi bi-exclamation-circle"></i> Critical
-                          </span>
+                          <span class="badge bg-danger"><i class="bi bi-exclamation-circle"></i> Critical</span>
                         {% elif item.stock_status == "Low" %}
-                          <span class="badge bg-warning">
-                            <i class="bi bi-exclamation-triangle"></i> Low
-                          </span>
+                          <span class="badge bg-warning"><i class="bi bi-exclamation-triangle"></i> Low</span>
                         {% else %}
-                          <span class="badge bg-success">
-                            <i class="bi bi-check-circle"></i> Good
-                          </span>
+                          <span class="badge bg-success"><i class="bi bi-check-circle"></i> Good</span>
                         {% endif %}
                       </td>
                       <td class="text-center">
@@ -81,13 +75,22 @@
       </div>
 
     {% else %}
-      <div class="d-flex justify-content-between align-items-center mb-2 page-header">
+      <div class="d-flex justify-content-between align-items-center mb-2 page-header flex-wrap gap-2">
         <div class="d-flex align-items-center gap-3">
           <h1 class="display-6 fw-bold text-white mb-0">
             <i class="bi bi-building"></i> Storage Overview
           </h1>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+          {% if user.is_authenticated %}
+          <a href="{% url 'export_current_stock' %}" class="btn btn-success" title="Export entire inventory to USB drive as Excel">
+            <i class="bi bi-file-earmark-excel"></i> Export to USB
+          </a>
+          <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#flashDeviceModal" title="Flash or clone M5Paper S3 device">
+            <i class="bi bi-cpu"></i> Flash Device
+          </button>
+          <span class="vr mx-1 bg-secondary"></span>
+          {% endif %}
           <button class="filter-badge" data-filter="Critical" data-filter-type="status" title="Filter Critical Items">
             <span class="status-dot critical-dot"></span>
             <span class="text-white ms-1">{{ total_stats.critical_count|default:0 }}</span>
@@ -99,6 +102,10 @@
           <button class="filter-badge" data-filter="Good" data-filter-type="status" title="Filter Good Stock Items">
             <span class="status-dot success-dot"></span>
             <span class="text-white ms-1">{{ total_stats.good_count|default:0 }}</span>
+          </button>
+          <button class="filter-badge" id="batteryFilter" data-filter-type="battery" title="Show Devices Below 10% Battery">
+            <i class="bi bi-battery-half text-warning"></i>
+            <span class="text-white ms-1">&lt;10%</span>
           </button>
         </div>
       </div>
@@ -119,40 +126,33 @@
               <div class="row g-4">
                 {% for device_data in row_data.devices %}
                   <div class="col-12 col-md-6">
-                    <div class="device-box {% if user.is_authenticated %}device-clickable{% endif %}"
-                         {% if user.is_authenticated %}
-                         data-device-id="{{ device_data.device.id }}"
-                         data-device-mac="{{ device_data.device.mac_address }}"
-                         data-device-row="{{ device_data.device.row }}"
-                         data-device-bottom-level="{{ device_data.device.bottom_level }}"
-                         data-device-left-box="{{ device_data.device.left_box }}"
-                         {% endif %}>
-                      <div class="device-header" {% if user.is_authenticated %}data-bs-toggle="modal" data-bs-target="#updateDeviceModal"{% endif %}>
-                        <h5 class="mb-1 text-white">{{ device_data.device.name|default:device_data.device }}</h5>
-                        <div class="d-flex justify-content-between align-items-center">
-                          <span class="text-white small">MAC: {{ device_data.device.mac_address }}</span>
-                          <div class="status-dots">
-                            {% if device_data.critical_count > 0 %}
-                              <span class="status-dot critical-dot" title="{{ device_data.critical_count }} Items are Critical">
-                                <span class="count">{{ device_data.critical_count }}</span>
-                              </span>
+                    <div class="device-box">
+                      <div class="device-header d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-3">
+                          <h5 class="mb-0 text-white">{{ device_data.device.name|default:device_data.device }}</h5>
+                          <span class="battery-status small {% if device_data.device.battery_level < 10 %}text-danger{% elif device_data.device.battery_level < 25 %}text-warning{% else %}text-white{% endif %}">
+                            {% if device_data.device.battery_level >= 75 %}
+                              <i class="bi bi-battery-full"></i>
+                            {% elif device_data.device.battery_level >= 50 %}
+                              <i class="bi bi-battery"></i>
+                            {% elif device_data.device.battery_level >= 25 %}
+                              <i class="bi bi-battery-half"></i>
+                            {% else %}
+                              <i class="bi bi-battery"></i>
                             {% endif %}
-                            {% if device_data.low_count > 0 %}
-                              <span class="status-dot warning-dot" title="{{ device_data.low_count }} Items are Low">
-                                <span class="count">{{ device_data.low_count }}</span>
-                              </span>
-                            {% endif %}
-                            {% if device_data.good_count > 0 %}
-                              <span class="status-dot success-dot" title="{{ device_data.good_count }} Items are Good">
-                                <span class="count">{{ device_data.good_count }}</span>
-                              </span>
-                            {% endif %}
-                            {% if not device_data.critical_count and not device_data.low_count and not device_data.good_count %}
-                              <span class="status-dot empty-dot" title="No items">
-                                <span class="count">0</span>
-                              </span>
-                            {% endif %}
-                          </div>
+                            {{ device_data.device.battery_level|default:"--" }}%
+                          </span>
+                        </div>
+                        <div class="status-dots">
+                          <span class="status-dot {% if device_data.critical_count > 0 %}critical-dot{% else %}empty-dot{% endif %}" title="{{ device_data.critical_count|default:0 }} Critical">
+                            <span class="count">{{ device_data.critical_count|default:0 }}</span>
+                          </span>
+                          <span class="status-dot {% if device_data.low_count > 0 %}warning-dot{% else %}empty-dot{% endif %}" title="{{ device_data.low_count|default:0 }} Low">
+                            <span class="count">{{ device_data.low_count|default:0 }}</span>
+                          </span>
+                          <span class="status-dot {% if device_data.good_count > 0 %}success-dot{% else %}empty-dot{% endif %}" title="{{ device_data.good_count|default:0 }} Good">
+                            <span class="count">{{ device_data.good_count|default:0 }}</span>
+                          </span>
                         </div>
                       </div>
 
@@ -204,6 +204,7 @@
     {% endif %}
   </div>
 
+  <!-- Update Item Modal -->
   <div class="modal fade" id="updateItemModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content bg-dark border-secondary">
@@ -217,16 +218,16 @@
             <input type="hidden" id="itemId" name="item_id">
             <div class="mb-3">
               <label for="itemName" class="form-label text-white">Item Name</label>
-              <input type="text" class="form-control bg-dark border-secondary text-white" id="itemName" name="name" {% if not user.is_authenticated %}readonly{% endif %}>
+              <input type="text" class="form-control bg-dark border-secondary text-white" id="itemName" name="name" maxlength="20" {% if not user.is_authenticated %}readonly{% endif %}>
             </div>
             <div class="mb-3">
               <label for="itemStock" class="form-label text-white">Current Stock</label>
-              <input type="number" class="form-control bg-dark border-secondary text-white" id="itemStock" name="stock" required min="0">
+              <input type="number" class="form-control bg-dark border-secondary text-white" id="itemStock" name="stock" required min="0" max="99">
             </div>
             {% if user.is_authenticated %}
             <div class="mb-3">
               <label for="itemMinStock" class="form-label text-white">Minimum Stock</label>
-              <input type="number" class="form-control bg-dark border-secondary text-white" id="itemMinStock" name="min_stock" required min="1">
+              <input type="number" class="form-control bg-dark border-secondary text-white" id="itemMinStock" name="min_stock" required min="1" max="99">
             </div>
             {% endif %}
             <button type="submit" class="btn btn-primary w-100"><i class="bi bi-save"></i> Save</button>
@@ -236,62 +237,12 @@
     </div>
   </div>
 
-  {% if user.is_authenticated %}
-  <div class="modal fade" id="updateDeviceModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content bg-dark border-secondary">
-        <div class="modal-header border-secondary">
-          <h5 class="modal-title text-white"><i class="bi bi-gear me-2"></i>Device Konfiguration</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body p-4">
-          <form id="updateDeviceForm" method="post">
-            {% csrf_token %}
-            <input type="hidden" id="deviceId">
-            <div class="mb-3">
-              <label class="form-label text-white">MAC Address</label>
-              <input type="text" class="form-control bg-dark border-secondary text-white" id="deviceMac" readonly>
-            </div>
-            <div class="mb-3">
-              <label for="deviceRow" class="form-label text-white">Reihe (Row)</label>
-              <select class="form-select bg-dark border-secondary text-white" id="deviceRow" name="row" required>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-              </select>
-              <small class="text-muted">Die Reihe des Geräts (1 bis 6).</small>
-            </div>
-            <div class="mb-3">
-              <label for="deviceBottomLevel" class="form-label text-white">Unterste Ebene (Bottom Level)</label>
-              <select class="form-select bg-dark border-secondary text-white" id="deviceBottomLevel" name="bottom_level" required>
-                <option value="1">1</option>
-                <option value="3">3</option>
-              </select>
-              <small class="text-muted">Die unterste Ebene (1 oder 3). Höhe ist immer 2 Ebenen.</small>
-            </div>
-            <div class="mb-3">
-              <label for="deviceLeftBox" class="form-label text-white">Linke Kiste (Left Box)</label>
-              <select class="form-select bg-dark border-secondary text-white" id="deviceLeftBox" name="left_box" required>
-                <option value="1">1</option>
-                <option value="4">4</option>
-              </select>
-              <small class="text-muted">Die linke Kiste (1 oder 4). Breite ist immer 3 Kisten.</small>
-            </div>
-            <button type="submit" class="btn btn-warning w-100"><i class="bi bi-save"></i> Speichern</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       window.activeStatusFilter = null;
+      window.activeBatteryFilter = false;
 
+      // Status filter badges (Critical / Low / Good)
       document.querySelectorAll('.filter-badge[data-filter-type="status"]').forEach(badge => {
         badge.addEventListener('click', function() {
           const filterType = this.dataset.filter;
@@ -307,66 +258,480 @@
         });
       });
 
+      document.getElementById('batteryFilter')?.addEventListener('click', function() {
+        window.activeBatteryFilter = !window.activeBatteryFilter;
+        this.classList.toggle('active');
+        applyFilters();
+      });
+
       function applyFilters() {
         const searchQuery = document.getElementById('realtimeSearch')?.value.toLowerCase().trim() || '';
-        document.querySelectorAll('.item-box').forEach(item => {
-          const matchesStatus = !window.activeStatusFilter || item.dataset.status === window.activeStatusFilter;
-          const itemText = (item.querySelector('.item-name')?.textContent || '') + ' ' + (item.querySelector('.item-location')?.textContent || '');
-          item.classList.toggle('hidden', !(matchesStatus && (!searchQuery || itemText.toLowerCase().includes(searchQuery))));
+        document.querySelectorAll('.device-box').forEach(deviceBox => {
+          const batteryText = deviceBox.querySelector('.battery-status')?.textContent || '';
+          const batteryMatch = batteryText.match(/(\d+)%/);
+          const batteryLevel = batteryMatch ? parseInt(batteryMatch[1]) : 100;
+          const matchesBattery = !window.activeBatteryFilter || batteryLevel < 10;
+
+          let hasVisibleItems = false;
+          deviceBox.querySelectorAll('.item-box').forEach(item => {
+            const matchesStatus = !window.activeStatusFilter || item.dataset.status === window.activeStatusFilter;
+            const itemText = (item.querySelector('.item-name')?.textContent || '') + ' ' +
+                             (item.querySelector('.item-location')?.textContent || '');
+            const matchesSearch = !searchQuery || itemText.toLowerCase().includes(searchQuery);
+            const visible = matchesStatus && matchesSearch;
+            item.classList.toggle('hidden', !visible);
+            if (visible) hasVisibleItems = true;
+          });
+
+          deviceBox.style.display = (matchesBattery && hasVisibleItems) ? '' : 'none';
         });
       }
       window.applyFilters = applyFilters;
 
+      // Stop item box clicks from bubbling up to device header
       document.querySelectorAll('.item-box').forEach(box => box.addEventListener('click', e => e.stopPropagation()));
 
+      // Populate the update modal fields from data attributes
       document.getElementById('updateItemModal')?.addEventListener('show.bs.modal', function(e) {
-        const b = e.relatedTarget;
-        const itemId = b.getAttribute('data-item-id');
+        const btn = e.relatedTarget;
+        const itemId = btn.getAttribute('data-item-id');
         document.getElementById('itemId').value = itemId;
-        document.getElementById('itemName').value = b.getAttribute('data-item-name');
-        document.getElementById('itemStock').value = b.getAttribute('data-item-stock');
-        if (document.getElementById('itemMinStock')) document.getElementById('itemMinStock').value = b.getAttribute('data-item-min-stock');
+        document.getElementById('itemName').value = btn.getAttribute('data-item-name');
+        document.getElementById('itemStock').value = btn.getAttribute('data-item-stock');
+        if (document.getElementById('itemMinStock')) {
+          document.getElementById('itemMinStock').value = btn.getAttribute('data-item-min-stock');
+        }
         document.getElementById('updateItemForm').action = `/update_item/${itemId}`;
       });
 
-      document.getElementById('updateDeviceModal')?.addEventListener('show.bs.modal', function(e) {
-        const d = e.relatedTarget.closest('.device-box');
-        document.getElementById('deviceId').value = d.getAttribute('data-device-id');
-        document.getElementById('deviceMac').value = d.getAttribute('data-device-mac');
-        document.getElementById('deviceRow').value = d.getAttribute('data-device-row');
-        document.getElementById('deviceBottomLevel').value = d.getAttribute('data-device-bottom-level');
-        document.getElementById('deviceLeftBox').value = d.getAttribute('data-device-left-box');
-      });
+      let serialPort = null;
+      let reader = null;
+      let writer = null;
+      let firmwareContent = null;
+      let cloneFiles = null;
 
-      document.getElementById('updateDeviceForm')?.addEventListener('submit', e => {
-        e.preventDefault();
-        submitDevice(false);
-      });
+      const M5STACK_FILTERS = [
+        { usbVendorId: 0x303A, usbProductId: 0x8120 },
+        { usbVendorId: 0x303A },
+        { usbVendorId: 0x1A86 },
+        { usbVendorId: 0x10C4 },
+      ];
 
-      function submitDevice(confirmSwap) {
-        const formData = new FormData();
-        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-        formData.append('row', document.getElementById('deviceRow').value);
-        formData.append('bottom_level', document.getElementById('deviceBottomLevel').value);
-        formData.append('left_box', document.getElementById('deviceLeftBox').value);
-        if (confirmSwap) formData.append('confirm_swap', 'true');
+      const CTRL_A = '\x01';
+      const CTRL_B = '\x02';
+      const CTRL_C = '\x03';
+      const CTRL_D = '\x04';
 
-        fetch(`/update_device/${document.getElementById('deviceId').value}`, {
-          method: 'POST',
-          body: formData,
-          headers: {'X-Requested-With': 'XMLHttpRequest'}
-        })
-        .then(r => r.json())
-        .then(data => {
-          if (data.success) return window.location.reload();
-          if (data.requires_confirmation && confirm(`Achtung! Es gibt bereits ein Gerät an dieser Position:\n\nMAC: ${data.conflict_device.mac_address}\nPosition: ${data.conflict_device.location}\n\nMöchten Sie die Positionen der beiden Geräte tauschen?`)) submitDevice(true);
-        })
-        .catch(() => alert('Ein Fehler ist aufgetreten.'));
+      function dbg(msg, ...args) { console.log(`[FLASH] ${msg}`, ...args); }
+      function logInfo(msg)    { appendLog(`<span class="text-info">ℹ</span> ${msg}`); dbg(msg); }
+      function logSuccess(msg) { appendLog(`<span class="text-success">✓</span> ${msg}`); dbg('OK: ' + msg); }
+      function logError(msg)   { appendLog(`<span class="text-danger">✗</span> ${msg}`); console.error('[FLASH] ' + msg); }
+      function logWarning(msg) { appendLog(`<span class="text-warning">⚠</span> ${msg}`); dbg('WARN: ' + msg); }
+      function logDebug(msg)   { appendLog(`<span class="text-white-50">  ${msg}</span>`); }
+
+      function appendLog(html) {
+        const out = document.getElementById('flashOutput');
+        out.innerHTML += '\n' + html;
+        out.scrollTop = out.scrollHeight;
       }
+
+      function clearLog() {
+        document.getElementById('flashOutput').innerHTML =
+          `<span class="text-white-50">Click "Connect Device" to begin.</span>`;
+      }
+
+      function updateProgress(percent, stage) {
+        document.getElementById('flashProgressBar').style.width = percent + '%';
+        document.getElementById('flashPercent').textContent = Math.round(percent) + '%';
+        document.getElementById('flashStage').textContent = stage;
+      }
+
+      function resetFlashModal() {
+        clearLog();
+        updateProgress(0, 'Ready to connect');
+        document.getElementById('flashBtnGroup').style.display = 'block';
+        document.getElementById('flashOptionsGroup').style.display = 'none';
+        document.getElementById('flashDoneGroup').style.display = 'none';
+        document.getElementById('flashErrorGroup').style.display = 'none';
+        document.getElementById('connectDeviceBtn').style.display = 'block';
+        document.getElementById('connectDeviceBtn').disabled = false;
+        document.getElementById('connectDeviceBtn').innerHTML = '<i class="bi bi-usb-symbol"></i> Connect Device';
+        document.getElementById('startFlashBtn').disabled = false;
+        document.getElementById('startFlashBtn').innerHTML = '<i class="bi bi-lightning-charge"></i> Flash Firmware';
+        document.getElementById('cloneSystemBtn').disabled = false;
+        document.getElementById('cloneSystemBtn').innerHTML = '<i class="bi bi-files"></i> Clone Full System';
+        closeSerialPort();
+      }
+
+      function showError(message) {
+        document.getElementById('flashErrorMessage').textContent = message;
+        document.getElementById('flashBtnGroup').style.display = 'none';
+        document.getElementById('flashErrorGroup').style.display = 'block';
+        logError(message);
+      }
+
+      function showSuccess() {
+        document.getElementById('flashBtnGroup').style.display = 'none';
+        document.getElementById('flashDoneGroup').style.display = 'block';
+        updateProgress(100, 'Complete!');
+        logSuccess('All done!');
+      }
+
+      function checkWebSerialSupport() {
+        if (!('serial' in navigator)) {
+          document.getElementById('browserCheckWarning').classList.remove('d-none');
+          document.getElementById('connectDeviceBtn').disabled = true;
+          logError('Web Serial API not available in this browser');
+          return false;
+        }
+        return true;
+      }
+
+      async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+      async function writeRaw(data) {
+        const bytes = new TextEncoder().encode(data);
+        await writer.write(bytes);
+      }
+
+      async function readUntil(target, timeoutMs = 3000) {
+        let buf = '';
+        const deadline = Date.now() + timeoutMs;
+        while (Date.now() < deadline) {
+          try {
+            const { value, done } = await Promise.race([
+              reader.read(),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 200))
+            ]);
+            if (done) break;
+            if (value) {
+              buf += new TextDecoder().decode(value);
+              if (buf.includes(target)) break;
+            }
+          } catch (e) {
+            if (e.message === 'timeout') continue;
+            break;
+          }
+        }
+        return buf;
+      }
+
+      async function drain() {
+        try {
+          await Promise.race([
+            reader.read(),
+            new Promise(r => setTimeout(r, 300))
+          ]);
+        } catch (e) {}
+      }
+
+      async function closeSerialPort() {
+        try {
+          if (reader) { await reader.cancel(); reader = null; }
+          if (writer) { writer.releaseLock(); writer = null; }
+          if (serialPort) { await serialPort.close(); serialPort = null; }
+        } catch (e) {}
+      }
+
+      async function connectDevice() {
+        try {
+          logInfo('Opening device selection...');
+          try {
+            serialPort = await navigator.serial.requestPort({ filters: M5STACK_FILTERS });
+          } catch (e) {
+            if (e.name === 'NotFoundError') { logWarning('No device selected'); return false; }
+            serialPort = await navigator.serial.requestPort();
+          }
+
+          const info = serialPort.getInfo();
+          logSuccess(`Device: VID=${info.usbVendorId?.toString(16)} PID=${info.usbProductId?.toString(16)}`);
+
+          logInfo('Opening serial port at 115200 baud...');
+          await serialPort.open({ baudRate: 115200, dataBits: 8, stopBits: 1, parity: 'none', flowControl: 'none' });
+          reader = serialPort.readable.getReader();
+          writer = serialPort.writable.getWriter();
+          logSuccess('Serial port opened');
+          await sleep(500);
+          return true;
+        } catch (e) {
+          logError('Connection failed: ' + e.message);
+          return false;
+        }
+      }
+
+      async function enterRawREPL() {
+        logInfo('Entering Raw REPL mode...');
+
+        // Send two interrupts to make sure nothing is running
+        await writeRaw(CTRL_C);
+        await sleep(100);
+        await writeRaw(CTRL_C);
+        await sleep(200);
+        await drain();
+
+        await writeRaw(CTRL_A);
+        await sleep(100);
+
+        let response = await readUntil('>', 2000);
+        dbg('Raw REPL response:', response.substring(0, 100));
+
+        if (response.includes('raw REPL') || response.includes('>')) {
+          logSuccess('Raw REPL mode active');
+          return true;
+        }
+
+        // One retry
+        await writeRaw(CTRL_C);
+        await sleep(100);
+        await writeRaw(CTRL_A);
+        await sleep(200);
+
+        response = await readUntil('>', 2000);
+        if (response.includes('raw REPL') || response.includes('>')) {
+          logSuccess('Raw REPL mode active');
+          return true;
+        }
+
+        logWarning('Could not confirm Raw REPL, continuing anyway...');
+        return true;
+      }
+
+      async function execRaw(code, timeoutMs = 3000) {
+        await writeRaw(code);
+        await writeRaw(CTRL_D);
+        const response = await readUntil('>', timeoutMs);
+        const ok = !response.includes('Traceback') && !response.includes('Error');
+        return { ok, output: response };
+      }
+
+      async function exitRawREPL() {
+        await writeRaw(CTRL_B);
+        await sleep(100);
+        await drain();
+      }
+
+      async function loadFirmware() {
+        if (firmwareContent) return true;
+        try {
+          logInfo('Loading firmware...');
+          const response = await fetch('/firmware/main.py');
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          firmwareContent = await response.text();
+          logSuccess(`Firmware loaded (${firmwareContent.length} bytes)`);
+          return true;
+        } catch (e) {
+          logError('Failed to load firmware: ' + e.message);
+          return false;
+        }
+      }
+
+      async function loadCloneFiles() {
+        if (cloneFiles) return true;
+        try {
+          logInfo('Loading clone files...');
+          const response = await fetch('/firmware/clone_files/');
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          const data = await response.json();
+          if (!data.files?.length) throw new Error('No files found');
+          cloneFiles = data.files;
+          logSuccess(`Loaded ${data.total_files} files (${(data.total_size / 1024).toFixed(1)} KB)`);
+          return true;
+        } catch (e) {
+          logError('Failed to load clone files: ' + e.message);
+          return false;
+        }
+      }
+
+      // Upload a single file via raw REPL using base64 chunks.
+      // We write in large batches to minimise round-trips over the serial link.
+      async function uploadFileRaw(filepath, content, isBinary = false) {
+        const fileSize = isBinary ? Math.round(content.length * 0.75) : content.length;
+        const base64Content = isBinary
+          ? content
+          : btoa(unescape(encodeURIComponent(content)));
+
+        const chunkSize = 1024;
+        const batchSize = 20;
+        const chunks = [];
+        for (let i = 0; i < base64Content.length; i += chunkSize) {
+          chunks.push(base64Content.substring(i, i + chunkSize));
+        }
+        const totalBatches = Math.ceil(chunks.length / batchSize);
+
+        if (fileSize > 1024) {
+          logInfo(`Uploading: ${filepath} (${(fileSize / 1024).toFixed(1)} KB, ${totalBatches} batches)`);
+        } else {
+          logDebug(`Uploading: ${filepath}`);
+        }
+
+        const openResult = await execRaw(`import ubinascii\nf=open('${filepath}','wb')\n`, 2000);
+        if (!openResult.ok) {
+          logWarning(`Failed to open ${filepath}`);
+          return false;
+        }
+
+        for (let batch = 0; batch < totalBatches; batch++) {
+          const start = batch * batchSize;
+          const end = Math.min(start + batchSize, chunks.length);
+          let batchCode = '';
+          for (let i = start; i < end; i++) {
+            batchCode += `f.write(ubinascii.a2b_base64('${chunks[i]}'))\n`;
+          }
+
+          const result = await execRaw(batchCode, 5000);
+          if (!result.ok) {
+            logWarning(`Batch failed, retrying individually...`);
+            for (let i = start; i < end; i++) {
+              await execRaw(`f.write(ubinascii.a2b_base64('${chunks[i]}'))\n`, 3000);
+            }
+          }
+        }
+
+        await execRaw('f.close()\n', 2000);
+        if (fileSize > 1024) logSuccess(`Done: ${filepath}`);
+        return true;
+      }
+
+      async function resetDevice() {
+        logInfo('Resetting device...');
+        try {
+          await writeRaw(CTRL_B);
+          await sleep(100);
+          await writeRaw(CTRL_C);
+          await sleep(100);
+          await writeRaw('import machine; machine.reset()\r\n');
+          await sleep(300);
+        } catch (e) {
+          dbg('Reset error:', e.message);
+        }
+        await closeSerialPort();
+        logSuccess('Device reset');
+      }
+
+      async function flashFirmware() {
+        try {
+          updateProgress(5, 'Loading firmware');
+          if (!serialPort) throw new Error('No device connected');
+          if (!await loadFirmware()) throw new Error('Failed to load firmware');
+
+          updateProgress(15, 'Entering Raw REPL');
+          if (!await enterRawREPL()) throw new Error('Failed to enter Raw REPL');
+
+          updateProgress(25, 'Uploading main.py');
+          if (!await uploadFileRaw('/flash/main.py', firmwareContent, false)) {
+            throw new Error('Failed to upload main.py');
+          }
+
+          updateProgress(90, 'Resetting device');
+          await resetDevice();
+          showSuccess();
+        } catch (e) {
+          console.error('Flash error:', e);
+          showError(e.message);
+          await closeSerialPort();
+        }
+      }
+
+      async function cloneFullSystem() {
+        try {
+          updateProgress(2, 'Loading files');
+          if (!serialPort) throw new Error('No device connected');
+          if (!await loadCloneFiles()) throw new Error('Failed to load clone files');
+
+          updateProgress(5, 'Entering Raw REPL');
+          if (!await enterRawREPL()) throw new Error('Failed to enter Raw REPL');
+
+          // Collect all unique directories from the file list
+          const dirs = new Set();
+          cloneFiles.forEach(file => {
+            const parts = file.path.split('/').slice(0, -1);
+            let path = '';
+            parts.forEach(part => {
+              if (part) { path += '/' + part; dirs.add(path); }
+            });
+          });
+
+          const sortedDirs = Array.from(dirs).sort();
+          updateProgress(8, `Creating ${sortedDirs.length} directories`);
+          logInfo(`Creating ${sortedDirs.length} directories...`);
+
+          let mkdirCode = 'import os\n';
+          for (const dir of sortedDirs) {
+            mkdirCode += `try:\n os.mkdir('${dir}')\nexcept:pass\n`;
+          }
+          await execRaw(mkdirCode, 10000);
+          logSuccess('Directories created');
+
+          // Upload smallest files first so progress bar moves early
+          const sortedFiles = [...cloneFiles].sort((a, b) => a.size - b.size);
+          const totalFiles = sortedFiles.length;
+          const totalSize = sortedFiles.reduce((sum, f) => sum + f.size, 0);
+          logInfo(`Uploading ${totalFiles} files (${(totalSize / 1024).toFixed(1)} KB total)...`);
+
+          let successCount = 0;
+          let uploadedSize = 0;
+
+          for (const file of sortedFiles) {
+            const pct = 10 + Math.round((uploadedSize / totalSize) * 85);
+            updateProgress(pct, `${successCount}/${totalFiles} files`);
+            const ok = await uploadFileRaw(file.path, file.content, file.binary);
+            if (ok) successCount++;
+            uploadedSize += file.size;
+          }
+
+          updateProgress(97, 'Resetting device');
+          await resetDevice();
+          logSuccess(`Clone complete: ${successCount}/${totalFiles} files uploaded`);
+          showSuccess();
+        } catch (e) {
+          console.error('Clone error:', e);
+          showError(e.message);
+          await closeSerialPort();
+        }
+      }
+
+      // Wire up buttons
+      document.getElementById('connectDeviceBtn')?.addEventListener('click', async () => {
+        if (!checkWebSerialSupport()) return;
+        document.getElementById('connectDeviceBtn').disabled = true;
+        document.getElementById('connectDeviceBtn').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Connecting...';
+
+        const connected = await connectDevice();
+        if (connected) {
+          document.getElementById('connectDeviceBtn').style.display = 'none';
+          document.getElementById('flashOptionsGroup').style.display = 'block';
+          updateProgress(10, 'Connected - choose an option');
+        } else {
+          document.getElementById('connectDeviceBtn').disabled = false;
+          document.getElementById('connectDeviceBtn').innerHTML = '<i class="bi bi-usb-symbol"></i> Connect Device';
+        }
+      });
+
+      document.getElementById('startFlashBtn')?.addEventListener('click', async () => {
+        document.getElementById('startFlashBtn').disabled = true;
+        document.getElementById('cloneSystemBtn').disabled = true;
+        document.getElementById('startFlashBtn').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Flashing...';
+        await flashFirmware();
+      });
+
+      document.getElementById('cloneSystemBtn')?.addEventListener('click', async () => {
+        document.getElementById('startFlashBtn').disabled = true;
+        document.getElementById('cloneSystemBtn').disabled = true;
+        document.getElementById('cloneSystemBtn').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Cloning...';
+        await cloneFullSystem();
+      });
+
+      document.getElementById('flashAnotherBtn')?.addEventListener('click', resetFlashModal);
+      document.getElementById('retryFlashBtn')?.addEventListener('click', resetFlashModal);
+
+      document.getElementById('flashDeviceModal')?.addEventListener('hidden.bs.modal', async () => {
+        await closeSerialPort();
+      });
     });
 
-    function toggleRow(n) {
-      document.querySelector(`.row-container[data-row="${n}"]`).classList.toggle('collapsed');
+    function toggleRow(rowNumber) {
+      const container = document.querySelector(`.row-container[data-row="${rowNumber}"]`);
+      container?.classList.toggle('collapsed');
     }
   </script>
 
