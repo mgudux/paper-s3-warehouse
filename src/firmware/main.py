@@ -9,10 +9,9 @@ import M5
 from M5 import *
 from m5ble import *
 
-# ============================================================================
+
 # CONFIGURATIONS FOR POWER SAVING : Battery life of 3-4 years
 # ============================================================================
-# Disable serial output to save power
 PRODUCTION_MODE = True
 
 SCREEN_WIDTH = 960
@@ -48,8 +47,7 @@ COLOR_DARK_GRAY = 0x404040
 DEBOUNCE_MS = 50
 TAP_DEBOUNCE_MS = 350
 
-# ============================================================================
-# UTILITIES & DEBUGGING
+
 # ============================================================================
 
 
@@ -90,8 +88,7 @@ def get_battery_percentage():
 def _uuid_undashed(uuid_str):
     return uuid_str.replace("-", "").lower()
 
-# ============================================================================
-# TOUCH MAPPER
+
 # ============================================================================
 
 
@@ -115,8 +112,6 @@ class TouchMapper:
         y = int(((RAW_TOUCH_W - rx) * SCREEN_HEIGHT) / RAW_TOUCH_W)
         return clamp(x, 0, SCREEN_WIDTH - 1), clamp(y, 0, SCREEN_HEIGHT - 1)
 
-# ============================================================================
-# INVENTORY MANAGER
 # ============================================================================
 
 
@@ -192,8 +187,7 @@ class InventoryManager:
             log("Update error: {}".format(e))
             return False
 
-# ============================================================================
-# BLE HANDLER
+
 # ============================================================================
 
 
@@ -376,9 +370,9 @@ class BLEHandler:
             return self._message_queue.pop(0)
         return None
 
-# ============================================================================
+
 # UI MANAGER (GRID LAYOUT)
-# ============================================================================
+
 
 
 class InventoryUI:
@@ -552,9 +546,9 @@ class InventoryUI:
                     self.on_interaction(t['chest_id'], 1)
                 return
 
-# ============================================================================
+
 # APP LOGIC
-# ============================================================================
+
 
 
 class InventoryApp:
