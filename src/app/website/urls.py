@@ -15,9 +15,7 @@ urlpatterns = [
          name='export_stock_history'),
     path('export_inventory/', views.export_current_stock,
          name='export_current_stock'),
-    path('flash_device/', views.flash_device, name='flash_device'),
     path('firmware/main.py', views.get_firmware_file, name='get_firmware'),
-    path('firmware/clone_files/', views.get_clone_files, name='get_clone_files'),
 
     # API Endpoints for BLE Gateway
     path('api/devices/register', views.api_register_device, name='api_register'),
