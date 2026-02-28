@@ -10,13 +10,19 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 10s
       retries: 5
       start_period: 30s
       timeout: 10s
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   web:
     build: .
@@ -32,14 +38,29 @@ services:
     volumes:
       - ./src:/app
       - ./backup:/backup
+      - ./staticfiles:/staticfiles
+      - /media:/media:rw
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_HOST: db
       POSTGRES_PORT: ${POSTGRES_PORT}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-django-insecure-default-key}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-False}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      PYTHONPATH: /app
     command: >
-      sh -c "until nc -z $$POSTGRES_HOST $$POSTGRES_PORT; do echo 'Waiting for database...'; sleep 1; done; python app/manage.py migrate --noinput && python app/manage.py runserver 0.0.0.0:8000"
+      sh -c "until nc -z $$POSTGRES_HOST $$POSTGRES_PORT; do echo 'Waiting for database...'; sleep 1; done;
+      python app/manage.py migrate --noinput &&
+      python app/manage.py collectstatic --noinput &&
+      gunicorn app.config.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120 --access-logfile - --error-logfile -"
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   postgres_data:
