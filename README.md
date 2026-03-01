@@ -4,7 +4,7 @@ A warehouse inventory system built around the PaperS3. Each display sits on a sh
 
 Warehouse workers can update stock counts directly at the shelf without needing a scanner, a phone or a PC. The e-paper screens hold their image with no power draw and the whole thing runs for years on a battery.
 
-The firmware is fully functional and complete. Other files resemble a prototype, that is fully functional but it doesn't include some features meant for production (Quick flashing, USB detection, Export etc.)
+The firmware, bluetooth communication and website is fully functional. The only feature that I couldn't implement was flashing device via browser. Unfortunately, you need the official "M5Burner" software to flash the firmware on the PaperS3. 
 
 Here's a quick 1 minute preview:
 ---
