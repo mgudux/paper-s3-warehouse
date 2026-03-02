@@ -9,6 +9,7 @@ The firmware, bluetooth communication and website is fully functional. The only 
 Here's a quick preview:
 ---
 
+https://github.com/user-attachments/assets/9d6ca7cd-bf8f-46ea-a6e3-7609c5eb1058
 
 
 ## Project Structure
